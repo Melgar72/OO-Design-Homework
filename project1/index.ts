@@ -1,4 +1,4 @@
-//import readline from "readline-sync";
+import * as readline from "readline-sync";
 
 /*
 Class / Structure for player / dealer. 
@@ -77,6 +77,8 @@ class Cards {
 
 }
 
+
+// TEST / REVISIT
 //const move = readline.question("(h)it or (s)tay ");
 
 let player = new Player(false, false, 0, 100, [], 0, false, 0);
@@ -120,7 +122,7 @@ for(let i = 0; i < 1; i++){
     /*
 
     ***** 
-    
+
         REVISIT WHEN READLINE IS FIXED. NEED TO WORK ON ACTUAL INPUT AND 
         HOW THE PLAYER WILL INTERACT
 
@@ -144,6 +146,8 @@ for(let i = 0; i < 1; i++){
     // If player hits, add a card to their card array and increase their score
 
     // If a player stands or busts, reveal the house hand
+    console.log("House : ", house.cards);
+    console.log("Player: ", player.cards, " ", player.score);
 
     // House hits until minimum of 17
     while(house.score < 17){
