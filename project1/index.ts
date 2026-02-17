@@ -11,6 +11,27 @@ Class / structure for deck of cards
 Suits not req'd, but have 4 of each card
 */
 
+class Game {
+    play: boolean;
+
+    constructor(
+        play: boolean
+    ){
+        this.play = play;
+    }
+
+    move() : boolean {
+        const move = readline.question("(h)it or (s)tay ");
+        return move.startsWith("h");
+    }
+    
+    gameState() : boolean{
+        const again = readline.question("(p)lay again or (l)eave");
+        return again.startsWith("p");
+    }
+
+}
+
 class Player {
     hit: boolean;          //  Read from input, (h)
     stand: boolean;        //  Read from input (s)
@@ -79,20 +100,19 @@ class Cards {
 
 
 // TEST / REVISIT
-//const move = readline.question("(h)it or (s)tay ");
-
-let player = new Player(false, false, 0, 100, [], 0, false, 0);
-let house = new Player(false, false, 0, 0, [], 0, false, 0);
-let deck = new Cards(
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
-);
 
 
-// ***** REMAKE AS GAME CLASS METHODS, CURRENTLY JUST ONE RUNTHROUGH *****
-for(let i = 0; i < 1; i++){
+let game = new Game(true);
+
+while(game.play == true){
+    let player = new Player(false, false, 0, 100, [], 0, false, 0);
+    let house = new Player(false, false, 0, 0, [], 0, false, 0);
+    let deck = new Cards(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
+    );
 
     // First, deal two cards to house and player, alternating between
     /*
@@ -119,38 +139,30 @@ for(let i = 0; i < 1; i++){
     console.log("Player: [", player.cards[0], "] [", player.cards[1], "] Total: ", player.score);
 
     // Player may hit or stand
-    /*
-
-    ***** 
-
-        REVISIT WHEN READLINE IS FIXED. NEED TO WORK ON ACTUAL INPUT AND 
-        HOW THE PLAYER WILL INTERACT
-
-    *****
-
-    */
-    while(player.score < 18){
-        player.hit = true;
-        player.cards.push(deck.randomNum(1, 11));
-        player.cardCount++;
-        player.score += player.cards[player.cardCount - 1] || 0;
-        console.log("House: ", house.cards[0],);
-        console.log("Player: ", player.cards, " ", player.score);
-        if(player.score > 21){
-            player.bust = true;
-        } else if(player.score >= 18){
-            player.stand;
+    while(!player.stand && !player.bust){
+        if(game.move() == true){
+            player.hit = true;
+            player.cards.push(deck.randomNum(1, 11));
+            player.cardCount++;
+            player.score += player.cards[player.cardCount - 1] || 0;
+            console.log("House: [", house.cards[0], "] [?]");
+            console.log("Player: ", player.cards, " ", player.score);
+            if(player.score == 21){
+                player.stand = true;
+            } else if(player.score > 21){
+                player.bust = true;
+            }
+        } else{
+            player.stand = true;
         }
     }
-
-    // If player hits, add a card to their card array and increase their score
 
     // If a player stands or busts, reveal the house hand
     console.log("House : ", house.cards);
     console.log("Player: ", player.cards, " ", player.score);
 
     // House hits until minimum of 17
-    while(house.score < 17){
+    while(!house.stand && !house.bust){
         house.hit = true;
         house.cards.push(deck.randomNum(1, 11));
         house.cardCount++;
@@ -164,11 +176,16 @@ for(let i = 0; i < 1; i++){
         } 
     }
 
+    if(game.gameState() == false){
+        game.play = false;
+    }
+
     // Set bust bool to true if score for either reaches above 21
 
     // If score hits 21, automatic stand
 
 }
+
 
 /*
 
