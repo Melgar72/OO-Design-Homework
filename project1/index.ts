@@ -1,15 +1,6 @@
 import * as readline from "readline-sync";
 
-/*
-Class / Structure for player / dealer. 
-Actions: Hit, Stand. 
-Check for bust, push
-*/
-
-/*
-Class / structure for deck of cards
-Suits not req'd, but have 4 of each card
-*/
+// Diego Melgar-Aguilar
 
 class Game {
     play: boolean;
@@ -57,7 +48,7 @@ class Player {
         this.cardCount = cardCount;
     }
 
-        move() : boolean {
+    move() : boolean {
         const move = readline.question("(h)it or (s)tay ");
         return move.startsWith("h");
     }
@@ -99,7 +90,23 @@ class Cards {
 }
 
 
-// TEST / REVISIT
+/*
+
+    ************
+
+    IF HAND WOULD BUST, CHECK FOR ACES / 1
+    NEEDS TO BE DONE AT ANY POINT IN TIME WHERE WOULD BUST
+
+    MAKE ACTUAL DECK, NOT JUST RANDOM RANGE PULLS
+    TRACK CARD USAGE IF POSSIBLE
+
+    CLEAN UP UNUSED CODE 
+
+    ************
+
+
+*/
+
 
 
 let game = new Game(true);
@@ -127,14 +134,23 @@ while(game.play == true){
     console.log("House: [", house.cards[0], "] [?]");
     console.log("Player: [", player.cards[0], "] [", player.cards[1], "] Total: ", player.score);
 
+    if(player.score == 21){ // Opening hand was a blackjack
+        player.stand = true;
+    }
+
     // Player may hit or stand
     while(!player.stand && !player.bust){
         if(player.move() == true){
             console.log("Your card is dealt...");
             player.hit = true;
-            player.cards.push(deck.randomNum(1, 11));
+            player.cards.push(deck.randomNum(2, 11));
             player.cardCount++;
             player.score += player.cards[player.cardCount - 1] || 0;
+            // check ace for bust
+            if(player.cards[player.cards.length - 1] == 11 && player.score > 21){
+                player.cards[player.cards.length -1] = 1;
+                player.score -= 10;
+            }
             console.log("House: [", house.cards[0], "] [?]");
             console.log("Player: ", player.cards, " ", player.score);
             if(player.score == 21){
@@ -153,12 +169,19 @@ while(game.play == true){
     console.log("Player: ", player.cards, " ", player.score);
 
     // House hits until minimum of 17
-    while(!house.stand && !house.bust){
+    if(house.score >= 17){
+        house.stand = true;
+    }
+    while(!house.stand && !house.bust && !player.bust){
         console.log("The house plays on...");
         house.hit = true;
         house.cards.push(deck.randomNum(1, 11));
         house.cardCount++;
         house.score += house.cards[house.cardCount - 1] || 0;
+        if(house.cards[house.cards.length - 1] == 11 && house.score > 21){
+                house.cards[house.cards.length - 1] = 1;
+                house.score -= 10;
+            }
         console.log("House: ", house.cards," ", house.score);
         console.log("Player: ", player.cards, " ", player.score);
         if(house.score > 21){
@@ -166,6 +189,23 @@ while(game.play == true){
         } else if(house.score >= 17){
             house.stand = true;
         } 
+    }
+
+    // Who won? 
+    if(house.score > player.score && house.stand == true){
+        console.log("The house always wins... Would you like to try again? (House wins)");
+    }
+    if(player.score > house.score && player.stand == true){
+        console.log("Well played. Try your luck again? (Player wins)");
+    }
+    if(house.stand == true && player.bust == true){
+        console.log("The house always wins... be careful pushing your luck. (House wins)");
+    }
+    if(house.bust === true && player.stand == true){
+        console.log("Well played, always happy to see a player win some back. (Player wins)");
+    }
+    if(house.score == player.score){
+        console.log("Rather close game. Maybe a little more? (Push. Tied game.)");
     }
 
     if(game.gameState() == false){
