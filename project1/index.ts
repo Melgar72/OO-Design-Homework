@@ -19,11 +19,6 @@ class Game {
     ){
         this.play = play;
     }
-
-    move() : boolean {
-        const move = readline.question("(h)it or (s)tay ");
-        return move.startsWith("h");
-    }
     
     gameState() : boolean{
         const again = readline.question("(p)lay again or (l)eave");
@@ -60,6 +55,11 @@ class Player {
         this.score = score;
         this.bust = bust;
         this.cardCount = cardCount;
+    }
+
+        move() : boolean {
+        const move = readline.question("(h)it or (s)tay ");
+        return move.startsWith("h");
     }
 }
 
@@ -115,17 +115,6 @@ while(game.play == true){
     );
 
     // First, deal two cards to house and player, alternating between
-    /*
-        TS was having issues with .cards[] being either number | undefined.
-        Providing a default value removes the error at runtime and 
-        allows implementation of working code.
-        
-        ******
-        RETURN TO THIS SECTION WHEN WORKING ON FIXING SUITS AND
-        TRACKING DECK USAGE
-        ******
-
-    */
     for (let i = 0; i < 2; i++){
         house.cards.push(deck.randomNum(1, 11));
         house.score += house.cards[i] || 0;
@@ -140,7 +129,8 @@ while(game.play == true){
 
     // Player may hit or stand
     while(!player.stand && !player.bust){
-        if(game.move() == true){
+        if(player.move() == true){
+            console.log("Your card is dealt...");
             player.hit = true;
             player.cards.push(deck.randomNum(1, 11));
             player.cardCount++;
@@ -158,11 +148,13 @@ while(game.play == true){
     }
 
     // If a player stands or busts, reveal the house hand
-    console.log("House : ", house.cards);
+    console.log("Let's see what the house has...");
+    console.log("House : ", house.cards, " ", house.score);
     console.log("Player: ", player.cards, " ", player.score);
 
     // House hits until minimum of 17
     while(!house.stand && !house.bust){
+        console.log("The house plays on...");
         house.hit = true;
         house.cards.push(deck.randomNum(1, 11));
         house.cardCount++;
