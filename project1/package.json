@@ -4,12 +4,7 @@
   "description": "project1 Blackjack",
   "license": "UNLICENSED",
   "author": "Diego Melgar-Aguilar",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
+  "devDependencies": {
     "@types/node": "^25.2.3",
     "@types/readline-sync": "^1.4.8",
     "readline-sync": "^1.4.10"
