@@ -211,11 +211,7 @@ while(game.play == true){
     if(game.gameState() == false){
         game.play = false;
     }
-
-    // Set bust bool to true if score for either reaches above 21
-
-    // If score hits 21, automatic stand
-
+    
 }
 
 
