@@ -23,20 +23,22 @@ class Player {
     stand: boolean;        //  Read from input (s)
     bet: number;
     money: number;
-    cards: number[];
+    cards: [string, number][];
     score: number;
     bust: boolean;
     cardCount: number;
+    name: string;
 
     constructor(
         hit: boolean,
         stand: boolean,
         bet: number,
         money: number,
-        cards: number[],
+        cards: [string, number][],
         score: number,
         bust: boolean,
-        cardCount: number
+        cardCount: number,
+        name: string
     ){
         this.hit = hit;
         this.stand = stand;
@@ -46,28 +48,42 @@ class Player {
         this.score = score;
         this.bust = bust;
         this.cardCount = cardCount;
+        this.name = name;
     }
 
     move() : boolean {
         const move = readline.question("(h)it or (s)tay ");
         return move.startsWith("h");
     }
+
+    updateScore(num : number) {
+        this.score += this.cards[num][1] || 0;
+    }
+
+    showCards(num: number, player: string) {
+        let cardFaces : string[] = [];
+        let baseString = "";
+        for(let i = 0; i < num; i++){
+            cardFaces.push(this.cards[i][0]);
+            baseString = baseString.concat("[", cardFaces[i], "]");
+        }
+        console.log(player, baseString, " Total Score: ", this.score);
+    }
 }
 
-class Cards {
-    hearts: number[];
-    spades: number[];
-    diamonds: number[];
-    clubs: number[];
+class Cards{
 
-    // enum h/s/d/c to make .rand pick? 
+    hearts: [string, number][];
+    spades: [string, number][];
+    diamonds: [string, number][];
+    clubs: [string, number][];
+
     constructor(
-        hearts: number[],
-        spades: number[],
-        diamonds: number[],
-        clubs: number[] 
-    ){  
-        // Pattern goes Card then Value
+        hearts: [string, number][],
+        spades: [string, number][],
+        diamonds: [string, number][],
+        clubs: [string, number][]
+    ){
         this.hearts = hearts;
         this.spades = spades;
         this.diamonds = diamonds;
@@ -81,11 +97,27 @@ class Cards {
     }
 
     //  Will need to be modified for removal of cards (play through full deck)
-    randomCard(value: number): number{
-        //suit = this.randomNum(1, 4);
-        value = this.randomNum(1, 13);
-        return value;   // use to track value, will need to change return type to track suit
+    randomCard(player: Player) {
+        switch(this.randomNum(1, 4)){
+            case 1: {
+                player.cards.push(this.hearts[this.randomNum(1, 13) - 1]);
+                break;
+            }
+            case 2: {
+                player.cards.push(this.spades[this.randomNum(1, 13) - 1]);
+                break
+            }
+            case 3: {
+                player.cards.push(this.diamonds[this.randomNum(1, 13) - 1]);
+                break;
+            }
+            case 4: {
+                player.cards.push(this.clubs[this.randomNum(1, 13) - 1]);
+                break;
+            }
+        }
     }
+
 
 }
 
@@ -106,33 +138,89 @@ class Cards {
 
 
 */
-
-
-
 let game = new Game(true);
 
 while(game.play == true){
-    let player = new Player(false, false, 0, 100, [], 0, false, 0);
-    let house = new Player(false, false, 0, 0, [], 0, false, 0);
+    let player = new Player(false, false, 0, 100, [], 0, false, 0, "Player");
+    let house = new Player(false, false, 0, 0, [], 0, false, 0, "House");
+    // let deck = new Cards(
+    //     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
+    //     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
+    //     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
+    //     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
+    // );
     let deck = new Cards(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10],
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
-    );
+    [
+        ['A', 11], 
+        ['2', 2], 
+        ['3', 3],
+        ['4', 4], 
+        ['5', 5], 
+        ['6', 6], 
+        ['7', 7], 
+        ['8', 8], 
+        ['9', 9], 
+        ['10', 10], 
+        ['J', 10], 
+        ['Q', 10], 
+        ['K', 10]
+    ], [
+        ['A', 11], 
+        ['2', 2], 
+        ['3', 3],
+        ['4', 4], 
+        ['5', 5], 
+        ['6', 6], 
+        ['7', 7], 
+        ['8', 8], 
+        ['9', 9], 
+        ['10', 10], 
+        ['J', 10], 
+        ['Q', 10], 
+        ['K', 10]
+    ], [
+        ['A', 11], 
+        ['2', 2], 
+        ['3', 3],
+        ['4', 4], 
+        ['5', 5], 
+        ['6', 6], 
+        ['7', 7], 
+        ['8', 8], 
+        ['9', 9], 
+        ['10', 10], 
+        ['J', 10], 
+        ['Q', 10], 
+        ['K', 10]
+    ] , [
+        ['A', 11], 
+        ['2', 2], 
+        ['3', 3],
+        ['4', 4], 
+        ['5', 5], 
+        ['6', 6], 
+        ['7', 7], 
+        ['8', 8], 
+        ['9', 9], 
+        ['10', 10], 
+        ['J', 10], 
+        ['Q', 10], 
+        ['K', 10]
+    ]
+);
 
     // First, deal two cards to house and player, alternating between
     for (let i = 0; i < 2; i++){
-        house.cards.push(deck.randomNum(1, 11));
-        house.score += house.cards[i] || 0;
-        house.cardCount++;
-        player.cards.push(deck.randomNum(1, 11));
-        player.score += player.cards[i] || 0;
-        player.cardCount++;
+        deck.randomCard(house);
+        house.updateScore(i);
+        house.cardCount++;  // verify usage
+        deck.randomCard(player);
+        player.updateScore(i);
+        player.cardCount++; // verify usage
     }  
     // Reveal the first card of the house, reveal both of the player
-    console.log("House: [", house.cards[0], "] [?]");
-    console.log("Player: [", player.cards[0], "] [", player.cards[1], "] Total: ", player.score);
+    console.log("House: [", house.cards[0][0], "] [?]");
+    player.showCards(player.cardCount, player.name);
 
     if(player.score == 21){ // Opening hand was a blackjack
         player.stand = true;
@@ -143,16 +231,16 @@ while(game.play == true){
         if(player.move() == true){
             console.log("Your card is dealt...");
             player.hit = true;
-            player.cards.push(deck.randomNum(2, 11));
+            deck.randomCard(player);
             player.cardCount++;
-            player.score += player.cards[player.cardCount - 1] || 0;
-            // check ace for bust
-            if(player.cards[player.cards.length - 1] == 11 && player.score > 21){
-                player.cards[player.cards.length -1] = 1;
+            player.updateScore(player.cardCount - 1);
+            // check ace for bust **** LOOP THROUGH FULL ARRAY 
+            if((player.cards.length - 1) == 11 && player.score > 21){
+                player.cards[1][player.cards.length - 1] = 1;
                 player.score -= 10;
             }
-            console.log("House: [", house.cards[0], "] [?]");
-            console.log("Player: ", player.cards, " ", player.score);
+            console.log("House: [", house.cards[0][0], "] [?]");
+            player.showCards(player.cardCount, player.name);
             if(player.score == 21){
                 player.stand = true;
             } else if(player.score > 21){
@@ -165,25 +253,26 @@ while(game.play == true){
 
     // If a player stands or busts, reveal the house hand
     console.log("Let's see what the house has...");
-    console.log("House : ", house.cards, " ", house.score);
-    console.log("Player: ", player.cards, " ", player.score);
+    house.showCards(house.cardCount, house.name);
+    player.showCards(player.cardCount, player.name);
 
     // House hits until minimum of 17
-    if(house.score >= 17){
+    if(house.score >= 17 || player.bust == true){
         house.stand = true;
     }
     while(!house.stand && !house.bust && !player.bust){
         console.log("The house plays on...");
         house.hit = true;
-        house.cards.push(deck.randomNum(1, 11));
+        deck.randomCard(house);
         house.cardCount++;
-        house.score += house.cards[house.cardCount - 1] || 0;
-        if(house.cards[house.cards.length - 1] == 11 && house.score > 21){
-                house.cards[house.cards.length - 1] = 1;
-                house.score -= 10;
-            }
-        console.log("House: ", house.cards," ", house.score);
-        console.log("Player: ", player.cards, " ", player.score);
+        house.updateScore(house.cardCount - 1);
+        // Revisit ace checks for full hand
+        if((house.cards.length - 1) == 11 && house.score > 21){
+            house.cards[1][house.cards.length - 1] = 1;
+            house.score -= 10;
+        }
+        house.showCards(house.cardCount, house.name);
+        player.showCards(player.cardCount, player.name);
         if(house.score > 21){
             house.bust = true;
         } else if(house.score >= 17){
@@ -211,14 +300,5 @@ while(game.play == true){
     if(game.gameState() == false){
         game.play = false;
     }
-    
+
 }
-
-
-/*
-
-    ['A', 11, '2', 2, '3', 3, '4', 4, '5', 5, '6', 6, '7', 7, '8', 8, '9', 9, '10', 10, 'J', 10, 'Q', 10, 'K', 10],
-    ['A', 11, '2', 2, '3', 3, '4', 4, '5', 5, '6', 6, '7', 7, '8', 8, '9', 9, '10', 10, 'J', 10, 'Q', 10, 'K', 10],
-    ['A', 11, '2', 2, '3', 3, '4', 4, '5', 5, '6', 6, '7', 7, '8', 8, '9', 9, '10', 10, 'J', 10, 'Q', 10, 'K', 10],
-    ['A', 11, '2', 2, '3', 3, '4', 4, '5', 5, '6', 6, '7', 7, '8', 8, '9', 9, '10', 10, 'J', 10, 'Q', 10, 'K', 10]
-*/
