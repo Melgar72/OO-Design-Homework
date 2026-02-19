@@ -43,7 +43,7 @@ class Game {
         let repeat = true;
         let answer = false;
         while (repeat == true) {
-            const again = readline.question("(p)lay again or (q)uit");
+            const again = readline.question("(p)lay or (q)uit ");
             if (again.startsWith("p")) {
                 answer = true; // if input is "p", return true
                 repeat = false;
@@ -55,6 +55,26 @@ class Game {
             if (!again.startsWith("p") || !again.startsWith("q")) {
                 continue;
             }
+        }
+        return answer;
+    }
+    mainMenu() {
+        let repeat = true;
+        let answer = false;
+        while (repeat == true) {
+            const mainMenu = readline.question("\n\n\nWelcome to the Blackjack table. Care to play?\n(y)es (n)o ");
+            if (mainMenu.startsWith("y")) {
+                answer = true;
+                repeat = false;
+            }
+            if (mainMenu.startsWith("n")) {
+                answer = false;
+                repeat = false;
+            }
+            if (repeat) {
+                continue;
+            }
+            ;
         }
         return answer;
     }
@@ -141,6 +161,10 @@ class Cards {
     }
 }
 let game = new Game(true);
+if (!game.mainMenu()) {
+    game.play = false;
+}
+;
 while (game.play == true) {
     let player = new Player(false, false, 0, 100, [], 0, false, 0, "Player");
     let house = new Player(false, false, 0, 0, [], 0, false, 0, "House");
@@ -302,5 +326,12 @@ while (game.play == true) {
     }
     if (game.gameState() == false) {
         game.play = false;
+        if (!game.mainMenu()) {
+            game.play = false;
+        }
+        else {
+            game.play = true;
+        }
+        ;
     }
 }
