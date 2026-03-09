@@ -1,4 +1,4 @@
-// Github: 
+// Github: https://github.com/Melgar72/OO-Design-Homework/tree/main/project2
 
 
 // this is an abstract class, meaning, we cannot write "new Game(...)".
@@ -13,46 +13,52 @@ abstract class Game {
     // every game has a betting book. the betting book is a hashmap that 
     // maps each player to how much money they are betting.
     private _book: Map< Gambler, number >; 
-    // note: there's a design problem here. what if we have a game
-    // that needs more betting information? this is actually an example where
-    // inheritance isn't ideal. don't worry about it for now while we're 
-    // just learning.
+    /*
+    note: there's a design problem here. what if we have a game
+    that needs more betting information? this is actually an example where
+    inheritance isn't ideal. don't worry about it for now while we're 
+    just learning.
 
-    // the casino the game belongs to.
-    // we could pass the casino in as an argument, along with book.
-    // there are good benefits to that design, but let's do it the more
-    // object-oriented, less functional way for our own education:
+    the casino the game belongs to.
+    we could pass the casino in as an argument, along with book.
+    there are good benefits to that design, but let's do it the more
+    object-oriented, less functional way for our own education:
+    */
     private _casino: Casino;
 
     public get name(): string { return this._name }
 
     // to construct a game, you have to give it a name
-    /** Construct a casino game with the given name, belonging to the
-     * given casino.
-     */
+    /* 
+    Construct a casino game with the given name, belonging to the
+    given casino.
+    */
     constructor( name: string, casino: Casino ) {
         this._name = name;
         this._book = new Map();
         this._casino = casino;
     }
-    // but wait, I thought we couldn't construct a Game?
-    // we can't, we aren't allowed to write new Game(...);
-    // but we are allowed to write new Blackjack(...), and Blackjack is a kind 
-    // of game. So Blackjack's constructor will call Game's constructor 
-    // (using the super keyword)
+    /*
+    but wait, I thought we couldn't construct a Game?
+    we can't, we aren't allowed to write new Game(...);
+    but we are allowed to write new Blackjack(...), and Blackjack is a kind 
+    of game. So Blackjack's constructor will call Game's constructor 
+    (using the super keyword)
+    */
 
-
-    // this method is abstract. each game will do it differently. 
-    // however, because it's here, each game *has* to fill in its code. 
-    // this means it's safe to have code like this:
-    // function something(game: Game) {
-    //      ...
-    //      game.playGame();
-    //      ...   
-    // }
-    // we can then write something(blackjack) and it will work, because
-    // blackjack is a Game, so it can be passed into game, and we know
-    // we can call "playGame" on it.
+    /*
+    this method is abstract. each game will do it differently. 
+    however, because it's here, each game *has* to fill in its code. 
+    this means it's safe to have code like this:
+    function something(game: Game) {
+         ...
+         game.playGame();
+         ...   
+    }
+    we can then write something(blackjack) and it will work, because
+    blackjack is a Game, so it can be passed into game, and we know
+    we can call "playGame" on it.
+    */
     
     /** Actually run the game and return who won. */
     protected abstract simulateGame(): Gambler[];
@@ -106,15 +112,16 @@ abstract class Game {
             console.log( " ", loser.name, "has lost!" );
             loser.addMoney( -bet ); // subtract money from losers;
             casino.addProfit( bet ); // give it to the casino
-
-            // also remove losers. the book will be empty after calling 
-            // playGame
-            // Note: it might be nice to make a functional version of 
-            // this where the book is an argument to the method
-            // IRL I think this design would be
-            // nicer, but it will be more obvious why when you take 
-            // programming language design and learn about functional 
-            // programming.
+            /*
+            also remove losers. the book will be empty after calling 
+            playGame
+            Note: it might be nice to make a functional version of 
+            this where the book is an argument to the method
+            IRL I think this design would be
+            nicer, but it will be more obvious why when you take 
+            programming language design and learn about functional 
+            programming.
+            */
             this._book.delete( loser );
         }
     }
@@ -129,12 +136,14 @@ abstract class Game {
      */
     public addPlayer( g: Gambler, bet: number ): void {
         this._book.set( g, bet );
-        // you might wonder why we need a method for this? aren't we just
-        // doing one line of code? yes, and many programmers will choose to 
-        // avoid this function. one reason to have the function, however, is  
-        // that it makes it easier to do more stuff when we add a player 
-        // (i.e., logging it to a file somewhere). However, this flexibility
-        // comes at the cost of a little bit of complexity. 
+        /*
+        you might wonder why we need a method for this? aren't we just
+        doing one line of code? yes, and many programmers will choose to 
+        avoid this function. one reason to have the function, however, is  
+        that it makes it easier to do more stuff when we add a player 
+        (i.e., logging it to a file somewhere). However, this flexibility
+        comes at the cost of a little bit of complexity. 
+        */
     }
 
     /** Returns a list of people playing the game. */
@@ -151,7 +160,12 @@ abstract class Game {
  * time. The dealer will flip a coin. If the coin is heads, the players 
  * win and their money is doubled. Otherwise, the players lose their bets. */ 
 class TailsIWin extends Game {
+
     // You need to add a constructor. What should go in it?
+    constructor(name: string, casino: Casino){
+        super("Tails I Win", casino);
+        //
+    }
 
     // try commenting out this method and see what error you get.
     // why do you get that error?
@@ -213,7 +227,10 @@ abstract class Gambler {
         startingFunds: number, 
         targetFunds: number 
     ) {
-        throw new Error( "YOUR CODE HERE" )
+        this._name = name;
+        this._money = startingFunds;
+        this._target = targetFunds;
+        //throw new Error( "YOUR CODE HERE" )
     }
 
     // These are properties. 
@@ -230,31 +247,50 @@ abstract class Gambler {
     get money(): number { return this._money }
     get target(): number { return this._target }
 
+    // Setters? set money(x: number){this._money = x};
+
     /**
      * Add or deduct a given amount of money to the gambler's bankroll. 
      * @param amount The amount of money to add. Negative means to remove.
      */
     addMoney( amount: number ): void {
-        throw new Error( "YOUR CODE HERE" )
+        this._money += amount;
+        //throw new Error( "YOUR CODE HERE" )
     }
 
     /**
      * @returns Whether the gambler has hit their target.
      */
-    public hitTarget(): boolean { throw new Error( "YOUR CODE HERE" ) }
+    public hitTarget(): boolean { 
+        if(this._money >= this._target){
+            return true;
+        } else{
+            return false;
+        }
+        //throw new Error( "YOUR CODE HERE" ) 
+    }
 
 
     /**
      * @returns Whether the gambler has run out of money.
      */
-    public bankrupt(): boolean { throw new Error( "YOUR CODE HERE" ) }
+    public bankrupt(): boolean {
+        if(this._money <= 0){
+            return true;
+        } else {
+            return false;
+        }
+        //throw new Error( "YOUR CODE HERE" ) 
+    }
     
     /**
      * @returns Whether the gambler is finished (i.e., if they've run out
      * of money or have reached their target.)
      */
     public isFinished(): boolean { 
-        throw new Error( "YOUR CODE HERE" )
+        if(this.hitTarget() || this.bankrupt()){return true;}
+        else{return false;}
+        //throw new Error( "YOUR CODE HERE" )
     }
 
     /**
@@ -276,12 +312,16 @@ class StableGambler extends Gambler {
         startingFunds: number, 
         stableBet: number
     ) {
+        // (Gambler name, their starting funds, their target goal)
         super( name, startingFunds, startingFunds * 2 );
         this._bet = stableBet;
     }
 
     public getBetSize(): number {
-        throw new Error( "YOUR CODE HERE" )
+        if(this.bankrupt()){
+            throw new Error( "YOUR CODE HERE" );
+        }
+        return this._bet;
     }
 }
 
