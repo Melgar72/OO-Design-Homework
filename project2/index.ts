@@ -247,7 +247,8 @@ abstract class Gambler {
     get money(): number { return this._money }
     get target(): number { return this._target }
 
-    // Setters? set money(x: number){this._money = x};
+    // setter for addMoney override in streakGambler
+    set money(x: number){this._money = x};
 
     /**
      * Add or deduct a given amount of money to the gambler's bankroll. 
@@ -318,10 +319,14 @@ class StableGambler extends Gambler {
     }
 
     public getBetSize(): number {
-        if(this.bankrupt()){
-            throw new Error( "YOUR CODE HERE" );
+        // if bet size is larger than gambler bank, standard bet
+        // if bet size is >= gambler bank, bet remaining money
+        if(this._bet > this.money){
+            return this._bet;
+        } else {
+            return this.money;
         }
-        return this._bet;
+        //throw new Error( "YOUR CODE HERE" );
     }
 }
 
@@ -343,7 +348,19 @@ class HighRiskGambler extends Gambler {
         startingFunds: number, 
         yoloAmnt: number 
     ) {
-        throw new Error( "YOUR CODE HERE" );
+        super(name, startingFunds, startingFunds * 5);
+        this._yoloAmount = yoloAmnt;
+        //throw new Error( "YOUR CODE HERE" );
+    }
+
+    public getBetSize(): number {
+        // if this.money <= yolo , bet this.money
+        // if this.money > yolo , bet half this.money
+        if(this.money <= this._yoloAmount){
+            return this.money;
+        } else{
+            return Math.floor(this.money / 2);
+        }
     }
 }
 
@@ -359,6 +376,59 @@ class HighRiskGambler extends Gambler {
  */
 class StreakGambler extends Gambler {
     // YOUR CODE HERE
+ 
+    private _firstBet: number;
+    private _minBet: number;
+    private _winMult: number;
+    private _loseMult: number;
+
+    public constructor(
+        name: string, 
+        startingFunds: number,
+        firstBet: number,
+        minBet: number,
+        winMult: number,
+        loseMult: number,
+        target: number
+    ){
+        // setting base info, target is 5x starting funds
+        // streak vs high risk
+        super(name, startingFunds, target);
+        this._firstBet = firstBet;
+        this._minBet = minBet;
+        this._winMult = winMult;
+        this._loseMult = loseMult;
+    }
+
+    public getBetSize(): number {
+        // if this.money <= this._minbet
+        if(this.money <= this._minBet){
+            return this.money;
+        }else if(this._firstBet < this._minBet){
+            // if firstBet < minBet
+            this._firstBet = this._minBet;
+            return this._firstBet;
+        }else{   
+            // multiplier is applied on win/loss
+            // taken care of in addMoney
+            // only need to return updated bet
+            return this._firstBet;
+        }
+    }
+
+    override addMoney(amount: number): void {
+        // still need to add/sub money
+        // verify setter works properly
+        this.money += amount;
+
+        // change multipliers
+        // If lost money, reduce mult, else gain mult
+        if(amount < 0){
+            this._firstBet *= this._loseMult;
+        } else {
+            this._firstBet *= this._winMult;
+        }
+    }
 }
 
 
