@@ -115,6 +115,7 @@ class TailsIWin extends Game {
         // if you don't win, you lose
         // return winners only
         // no need to mark losers
+        console.log("We are in the game.");
         if (Math.random() >= .5) {
             for (let player of this.getPlayers()) {
                 // win

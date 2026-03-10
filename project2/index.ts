@@ -13,12 +13,8 @@ abstract class Game {
     // every game has a betting book. the betting book is a hashmap that 
     // maps each player to how much money they are betting.
     private _book: Map< Gambler, number >; 
-    /*
-    note: there's a design problem here. what if we have a game
-    that needs more betting information? this is actually an example where
-    inheritance isn't ideal. don't worry about it for now while we're 
-    just learning.
 
+    /*
     the casino the game belongs to.
     we could pass the casino in as an argument, along with book.
     there are good benefits to that design, but let's do it the more
@@ -175,6 +171,7 @@ class TailsIWin extends Game {
         // if you don't win, you lose
         // return winners only
         // no need to mark losers
+        console.log("We are in the game.")
         if(Math.random() >= .5){
             for(let player of this.getPlayers()){
                 // win
