@@ -160,17 +160,28 @@ abstract class Game {
  * time. The dealer will flip a coin. If the coin is heads, the players 
  * win and their money is doubled. Otherwise, the players lose their bets. */ 
 class TailsIWin extends Game {
+    private winners : Gambler[]
 
     // You need to add a constructor. What should go in it?
     constructor(name: string, casino: Casino){
-        super("Tails I Win", casino);
-        //
+        super(name, casino);
+        this.winners = [];
     }
 
-    // try commenting out this method and see what error you get.
-    // why do you get that error?
+    // Required method
     override simulateGame(): Gambler[] {
-        throw new Error( "YOUR CODE HERE" );
+        // flip coin
+        // 0->1 , <.5 = tails, >= .5 = heads
+        // if you don't win, you lose
+        // return winners only
+        // no need to mark losers
+        if(Math.random() >= .5){
+            for(let player of this.getPlayers()){
+                // win
+                this.winners.push(player);
+            }
+        }
+        return this.winners;
     }
 
     // Is the default profitMultiplier behavior okay? 
@@ -198,7 +209,31 @@ function randomInt( upper: number ) {
  * (total profit of 3.5x). Otherwise, they lose their money.
  */
 class GuessTheNumber extends Game {
-    
+    private winners : Gambler[];
+    private playerNumGuess : number;
+    private casinoNumGuess : number;
+
+    constructor(name: string, casino: Casino){
+        super(name, casino);
+        this.winners = [];
+        this.playerNumGuess = randomInt(5);
+        this.casinoNumGuess = randomInt(5);
+    }
+
+
+    override simulateGame(): Gambler[] {
+        for(let player of this.getPlayers()){
+            if(this.playerNumGuess == this.casinoNumGuess){
+                this.winners.push(player);
+            }
+        }
+        return this.winners;
+    }
+
+    // protected? 
+    override profitMultiplier(_gambler: Gambler): number {
+        return 4.5;
+    }
 }
 
 /**
@@ -212,7 +247,54 @@ class GuessTheNumber extends Game {
  * each player just picks a pig. 
  */
 class OffTrackGuineaPigRacing extends Game {
-    
+    private winners : Gambler[];
+    private playerPig : number;
+
+    constructor(name: string, casino: Casino){
+        super(name, casino);
+        this.winners = [];
+        this.playerPig = randomInt(4);
+    }
+
+    override simulateGame(): Gambler[] {
+        // for loop for players
+        // switch case for 0->3
+        // default no pigs in this race? 
+        for(let player of this.getPlayers()){
+            switch (this.playerPig){
+                case 0: 
+                    if(Math.random() <= .5){
+                        this.winners.push(player);
+                        break;
+                    }
+                case 1: 
+                    if(Math.random() <= .25){
+                        this.winners.push(player);
+                        break;
+                    }
+                case 2: 
+                    if(Math.random() <= .125){
+                        this.winners.push(player);
+                        break;
+                    }
+                case 3:
+                    if(Math.random() <= .125){
+                        this.winners.push(player);
+                        break;
+                    }
+                default:
+                    console.log("No pigs in this race?");
+            }
+        }
+        return this.winners;
+    }
+
+    override profitMultiplier(_gambler: Gambler): number {
+        if(this.playerPig == 0){return 1.9;}
+        else if(this.playerPig == 1){return 3.8;}
+        else if(this.playerPig == 2){return 7.6;}
+        else{return 7.6;} // only other option is pig 3
+    }
 }
 
 abstract class Gambler {
@@ -448,9 +530,9 @@ class Casino {
 
     public constructor( maxRounds: number ) {
         this._games = [
-            new TailsIWin( this ),
-            new GuessTheNumber( this ),
-            new OffTrackGuineaPigRacing( this ),
+            new TailsIWin("Tails I Win", casino),
+            new GuessTheNumber("Guess the Number", casino),
+            new OffTrackGuineaPigRacing("Off Track Guineapig Racing", casino),
         ];
 
         this._profits = 0;
