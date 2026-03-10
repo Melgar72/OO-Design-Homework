@@ -1,7 +1,12 @@
 {
+  "name": "project2",
+  "version": "1.0.0",
+  "descrption": "project2 casino",
+  "license": "UNLICENSED",
+  "author": "Diego Melgar-Aguilar",
   "devDependencies": {
-    "@types/node": "^20.4.2",
-    "@types/readline-sync": "^1.4.4"
+    "@types/node": "^25.2.3",
+    "@types/readline-sync": "^1.4.8"
   },
   "dependencies": {
     "readline-sync": "^1.4.10"

@@ -1,40 +1,22 @@
+"use strict";
 // Github: https://github.com/Melgar72/OO-Design-Homework/tree/main/project2
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 // this is an abstract class, meaning, we cannot write "new Game(...)".
 // this is because the class is missing the "simluateGame" method. 
 // that method is declared "abstract", meaning "our child classes will have to 
 // fill in what it does". 
 /** Represents a casino game. */
-var Game = /** @class */ (function () {
+class Game {
+    get name() { return this._name; }
     // to construct a game, you have to give it a name
     /*
     Construct a casino game with the given name, belonging to the
     given casino.
     */
-    function Game(name, casino) {
+    constructor(name, casino) {
         this._name = name;
         this._book = new Map();
         this._casino = casino;
     }
-    Object.defineProperty(Game.prototype, "name", {
-        get: function () { return this._name; },
-        enumerable: false,
-        configurable: true
-    });
     // the child class will figure out which gamblers won and return them.
     // this method is abstract: it has no definition. It's up to the child
     // classes to decide what it does. 
@@ -46,27 +28,25 @@ var Game = /** @class */ (function () {
      * to pick a different value here.
      * @returns How much to multiply the winnings by
      */
-    Game.prototype.profitMultiplier = function (_gambler) { return 2; };
+    profitMultiplier(_gambler) { return 2; }
     // this method is *not* abstract, but it calls an abstract method.
     // yes: non-abstract methods can call abstract methods in the same class.
     /** Play the game and give the winners their moeney.
      * Prints all the winners. Removes all elements of this.book.
      * Updates the casino's profits and losses.
      */
-    Game.prototype.playGame = function () {
+    playGame() {
         console.log("playing", this.name, "with book:");
-        for (var _i = 0, _a = this._book; _i < _a.length; _i++) {
-            var _b = _a[_i], player = _b[0], bet = _b[1];
+        for (let [player, bet] of this._book) {
             console.log("  ", player.name, ": $", bet);
         }
-        var winners = this.simulateGame();
+        const winners = this.simulateGame();
         console.log("game finished!");
         // For each winner, calculate how much money they won and give it to
         // them. Deduct that much money from the casino.
-        for (var _c = 0, winners_1 = winners; _c < winners_1.length; _c++) {
-            var winner = winners_1[_c];
-            var bet = this._book.get(winner);
-            var winnings = bet * this.profitMultiplier(winner);
+        for (let winner of winners) {
+            const bet = this._book.get(winner);
+            const winnings = bet * this.profitMultiplier(winner);
             winner.addMoney(winnings);
             this._casino.addProfit(-winnings);
             console.log(" ", winner.name, "is a winner! they won: ", winnings);
@@ -74,8 +54,7 @@ var Game = /** @class */ (function () {
             this._book.delete(winner);
         }
         // For each loser, take their money and give it to the casino.
-        for (var _d = 0, _e = this._book; _d < _e.length; _d++) {
-            var _f = _e[_d], loser = _f[0], bet = _f[1];
+        for (let [loser, bet] of this._book) {
             console.log(" ", loser.name, "has lost!");
             loser.addMoney(-bet); // subtract money from losers;
             casino.addProfit(bet); // give it to the casino
@@ -91,7 +70,7 @@ var Game = /** @class */ (function () {
             */
             this._book.delete(loser);
         }
-    };
+    }
     // this function is *not* abstract. We are filling in it's code right now.
     // the child classes will not override this method. It will do the same
     // thing on each child class, so they do not provide their own version of.
@@ -100,7 +79,7 @@ var Game = /** @class */ (function () {
      * @param g The gambler to add to the game.
      * @param bet The amount they are betting.
      */
-    Game.prototype.addPlayer = function (g, bet) {
+    addPlayer(g, bet) {
         this._book.set(g, bet);
         /*
         you might wonder why we need a method for this? aren't we just
@@ -110,46 +89,41 @@ var Game = /** @class */ (function () {
         (i.e., logging it to a file somewhere). However, this flexibility
         comes at the cost of a little bit of complexity.
         */
-    };
+    }
     /** Returns a list of people playing the game. */
-    Game.prototype.getPlayers = function () {
+    getPlayers() {
         // this.book.keys() returns an iterator, which is an object that 
         // allows us to scan over a collection using a for loop. We use
         // Array.from(...) to scan over the iterator and add its elements
         // into an array.
         return Array.from(this._book.keys());
-    };
-    return Game;
-}());
+    }
+}
 /** This is a game where the players all place their bets at the same
  * time. The dealer will flip a coin. If the coin is heads, the players
  * win and their money is doubled. Otherwise, the players lose their bets. */
-var TailsIWin = /** @class */ (function (_super) {
-    __extends(TailsIWin, _super);
+class TailsIWin extends Game {
     // You need to add a constructor. What should go in it?
-    function TailsIWin(name, casino) {
-        var _this = _super.call(this, name, casino) || this;
-        _this.winners = [];
-        return _this;
+    constructor(name, casino) {
+        super(name, casino);
+        this.winners = [];
     }
     // Required method
-    TailsIWin.prototype.simulateGame = function () {
+    simulateGame() {
         // flip coin
         // 0->1 , <.5 = tails, >= .5 = heads
         // if you don't win, you lose
         // return winners only
         // no need to mark losers
         if (Math.random() >= .5) {
-            for (var _i = 0, _a = this.getPlayers(); _i < _a.length; _i++) {
-                var player = _a[_i];
+            for (let player of this.getPlayers()) {
                 // win
                 this.winners.push(player);
             }
         }
         return this.winners;
-    };
-    return TailsIWin;
-}(Game));
+    }
+}
 /**
  * Helper function to generate uniform random numbers between [0, upper).
  * So randomInt( 5 ) generates a number between 0 and 4.
@@ -169,30 +143,26 @@ function randomInt(upper) {
  * picks the same number as the dealer, they get back 4.5x their bet.
  * (total profit of 3.5x). Otherwise, they lose their money.
  */
-var GuessTheNumber = /** @class */ (function (_super) {
-    __extends(GuessTheNumber, _super);
-    function GuessTheNumber(name, casino) {
-        var _this = _super.call(this, name, casino) || this;
-        _this.winners = [];
-        _this.playerNumGuess = randomInt(5);
-        _this.casinoNumGuess = randomInt(5);
-        return _this;
+class GuessTheNumber extends Game {
+    constructor(name, casino) {
+        super(name, casino);
+        this.winners = [];
+        this.playerNumGuess = randomInt(5);
+        this.casinoNumGuess = randomInt(5);
     }
-    GuessTheNumber.prototype.simulateGame = function () {
-        for (var _i = 0, _a = this.getPlayers(); _i < _a.length; _i++) {
-            var player = _a[_i];
+    simulateGame() {
+        for (let player of this.getPlayers()) {
             if (this.playerNumGuess == this.casinoNumGuess) {
                 this.winners.push(player);
             }
         }
         return this.winners;
-    };
+    }
     // protected? 
-    GuessTheNumber.prototype.profitMultiplier = function (_gambler) {
+    profitMultiplier(_gambler) {
         return 4.5;
-    };
-    return GuessTheNumber;
-}(Game));
+    }
+}
 /**
  * Simulated guinea-pig racing. Players choose a pig from 0 to 3.
  * Pig #0 has a 50% chance of winning, and pays out 1.9 if they win.
@@ -203,20 +173,17 @@ var GuessTheNumber = /** @class */ (function (_super) {
  * There are no complicated horse-racing-style bets (e.g., place, show, etc.),
  * each player just picks a pig.
  */
-var OffTrackGuineaPigRacing = /** @class */ (function (_super) {
-    __extends(OffTrackGuineaPigRacing, _super);
-    function OffTrackGuineaPigRacing(name, casino) {
-        var _this = _super.call(this, name, casino) || this;
-        _this.winners = [];
-        _this.playerPig = randomInt(4);
-        return _this;
+class OffTrackGuineaPigRacing extends Game {
+    constructor(name, casino) {
+        super(name, casino);
+        this.winners = [];
+        this.playerPig = randomInt(4);
     }
-    OffTrackGuineaPigRacing.prototype.simulateGame = function () {
+    simulateGame() {
         // for loop for players
         // switch case for 0->3
         // default no pigs in this race? 
-        for (var _i = 0, _a = this.getPlayers(); _i < _a.length; _i++) {
-            var player = _a[_i];
+        for (let player of this.getPlayers()) {
             switch (this.playerPig) {
                 case 0:
                     if (Math.random() <= .5) {
@@ -243,8 +210,8 @@ var OffTrackGuineaPigRacing = /** @class */ (function (_super) {
             }
         }
         return this.winners;
-    };
-    OffTrackGuineaPigRacing.prototype.profitMultiplier = function (_gambler) {
+    }
+    profitMultiplier(_gambler) {
         if (this.playerPig == 0) {
             return 1.9;
         }
@@ -257,56 +224,43 @@ var OffTrackGuineaPigRacing = /** @class */ (function (_super) {
         else {
             return 7.6;
         } // only other option is pig 3
-    };
-    return OffTrackGuineaPigRacing;
-}(Game));
-var Gambler = /** @class */ (function () {
-    function Gambler(name, startingFunds, targetFunds) {
+    }
+}
+class Gambler {
+    constructor(name, startingFunds, targetFunds) {
         this._name = name;
         this._money = startingFunds;
         this._target = targetFunds;
         //throw new Error( "YOUR CODE HERE" )
     }
-    Object.defineProperty(Gambler.prototype, "name", {
-        // These are properties. 
-        // When we create a gambler: const gambler = new Gambler(...);
-        // we can write this: console.log( gambler.name )
-        // get name(): ... makes it so that when we access gambler.name, 
-        // the function { return this._name } gets called. This allows us
-        // to read the name inside the gambler. 
-        // Getters are public by default, so this is a way of reading a public 
-        // variable.
-        // However, get can only get a value. It's not able to set values. So
-        // name is a read-only property, which is what we want. 
-        get: function () { return this._name; },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Gambler.prototype, "money", {
-        get: function () { return this._money; },
-        // setter for addMoney override in streakGambler
-        set: function (x) { this._money = x; },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Gambler.prototype, "target", {
-        get: function () { return this._target; },
-        enumerable: false,
-        configurable: true
-    });
+    // These are properties. 
+    // When we create a gambler: const gambler = new Gambler(...);
+    // we can write this: console.log( gambler.name )
+    // get name(): ... makes it so that when we access gambler.name, 
+    // the function { return this._name } gets called. This allows us
+    // to read the name inside the gambler. 
+    // Getters are public by default, so this is a way of reading a public 
+    // variable.
+    // However, get can only get a value. It's not able to set values. So
+    // name is a read-only property, which is what we want. 
+    get name() { return this._name; }
+    get money() { return this._money; }
+    get target() { return this._target; }
+    // setter for addMoney override in streakGambler
+    set money(x) { this._money = x; }
     ;
     /**
      * Add or deduct a given amount of money to the gambler's bankroll.
      * @param amount The amount of money to add. Negative means to remove.
      */
-    Gambler.prototype.addMoney = function (amount) {
+    addMoney(amount) {
         this._money += amount;
         //throw new Error( "YOUR CODE HERE" )
-    };
+    }
     /**
      * @returns Whether the gambler has hit their target.
      */
-    Gambler.prototype.hitTarget = function () {
+    hitTarget() {
         if (this._money >= this._target) {
             return true;
         }
@@ -314,11 +268,11 @@ var Gambler = /** @class */ (function () {
             return false;
         }
         //throw new Error( "YOUR CODE HERE" ) 
-    };
+    }
     /**
      * @returns Whether the gambler has run out of money.
      */
-    Gambler.prototype.bankrupt = function () {
+    bankrupt() {
         if (this._money <= 0) {
             return true;
         }
@@ -326,12 +280,12 @@ var Gambler = /** @class */ (function () {
             return false;
         }
         //throw new Error( "YOUR CODE HERE" ) 
-    };
+    }
     /**
      * @returns Whether the gambler is finished (i.e., if they've run out
      * of money or have reached their target.)
      */
-    Gambler.prototype.isFinished = function () {
+    isFinished() {
         if (this.hitTarget() || this.bankrupt()) {
             return true;
         }
@@ -339,23 +293,20 @@ var Gambler = /** @class */ (function () {
             return false;
         }
         //throw new Error( "YOUR CODE HERE" )
-    };
-    return Gambler;
-}());
+    }
+}
 /**
  * The stable gambler always bets the same amount as long as they have enough
  * money. If they don't, they bet what they have. Their goal is to double
  * their starting funds.
  */
-var StableGambler = /** @class */ (function (_super) {
-    __extends(StableGambler, _super);
-    function StableGambler(name, startingFunds, stableBet) {
+class StableGambler extends Gambler {
+    constructor(name, startingFunds, stableBet) {
         // (Gambler name, their starting funds, their target goal)
-        var _this = _super.call(this, name, startingFunds, startingFunds * 2) || this;
-        _this._bet = stableBet;
-        return _this;
+        super(name, startingFunds, startingFunds * 2);
+        this._bet = stableBet;
     }
-    StableGambler.prototype.getBetSize = function () {
+    getBetSize() {
         // if bet size is larger than gambler bank, standard bet
         // if bet size is >= gambler bank, bet remaining money
         if (this._bet > this.money) {
@@ -365,27 +316,24 @@ var StableGambler = /** @class */ (function (_super) {
             return this.money;
         }
         //throw new Error( "YOUR CODE HERE" );
-    };
-    return StableGambler;
-}(Gambler));
+    }
+}
 /**
  * The high risk gambler always bets half of their current money. If they have
  * less than yoloAmount, they bet the remainder of their money. Their goal is
  * to make 5 times their starting amount of money.
  */
-var HighRiskGambler = /** @class */ (function (_super) {
-    __extends(HighRiskGambler, _super);
+class HighRiskGambler extends Gambler {
     /**
      * @param yoloAmnt If the gambler has <= this amount of money, they
      * bet everything they have remaining.
      */
-    function HighRiskGambler(name, startingFunds, yoloAmnt) {
-        var _this = _super.call(this, name, startingFunds, startingFunds * 5) || this;
-        _this._yoloAmount = yoloAmnt;
-        return _this;
+    constructor(name, startingFunds, yoloAmnt) {
+        super(name, startingFunds, startingFunds * 5);
+        this._yoloAmount = yoloAmnt;
         //throw new Error( "YOUR CODE HERE" );
     }
-    HighRiskGambler.prototype.getBetSize = function () {
+    getBetSize() {
         // if this.money <= yolo , bet this.money
         // if this.money > yolo , bet half this.money
         if (this.money <= this._yoloAmount) {
@@ -394,9 +342,8 @@ var HighRiskGambler = /** @class */ (function (_super) {
         else {
             return Math.floor(this.money / 2);
         }
-    };
-    return HighRiskGambler;
-}(Gambler));
+    }
+}
 /**
  * The streak better always increases their bet whenever they win by a
  * given multiple, and reduces their bet by a given multiple when they lose.
@@ -407,19 +354,17 @@ var HighRiskGambler = /** @class */ (function (_super) {
  *
  * How do we detect whether we won or lost? Override the addMoney method.
  */
-var StreakGambler = /** @class */ (function (_super) {
-    __extends(StreakGambler, _super);
-    function StreakGambler(name, startingFunds, firstBet, minBet, winMult, loseMult, target) {
+class StreakGambler extends Gambler {
+    constructor(name, startingFunds, firstBet, minBet, winMult, loseMult, target) {
         // setting base info, target is 5x starting funds
         // streak vs high risk
-        var _this = _super.call(this, name, startingFunds, target) || this;
-        _this._firstBet = firstBet;
-        _this._minBet = minBet;
-        _this._winMult = winMult;
-        _this._loseMult = loseMult;
-        return _this;
+        super(name, startingFunds, target);
+        this._firstBet = firstBet;
+        this._minBet = minBet;
+        this._winMult = winMult;
+        this._loseMult = loseMult;
     }
-    StreakGambler.prototype.getBetSize = function () {
+    getBetSize() {
         // if this.money <= this._minbet
         if (this.money <= this._minBet) {
             return this.money;
@@ -435,8 +380,8 @@ var StreakGambler = /** @class */ (function (_super) {
             // only need to return updated bet
             return this._firstBet;
         }
-    };
-    StreakGambler.prototype.addMoney = function (amount) {
+    }
+    addMoney(amount) {
         // still need to add/sub money
         // verify setter works properly
         this.money += amount;
@@ -448,11 +393,10 @@ var StreakGambler = /** @class */ (function (_super) {
         else {
             this._firstBet *= this._winMult;
         }
-    };
-    return StreakGambler;
-}(Gambler));
-var Casino = /** @class */ (function () {
-    function Casino(maxRounds) {
+    }
+}
+class Casino {
+    constructor(maxRounds) {
         this._games = [
             new TailsIWin("Tails I Win", casino),
             new GuessTheNumber("Guess the Number", casino),
@@ -483,28 +427,26 @@ var Casino = /** @class */ (function () {
      * @param amount The amount of profit to add. If negative, it counts as a
      * loss.
      */
-    Casino.prototype.addProfit = function (amount) {
+    addProfit(amount) {
         this._profits += amount;
-    };
+    }
     /** For each game: have each gambler who is still present play.
      * Starts by printing how much money each gambler has.
      * If a gambler runs out of money or hits their target, they leave.
      * Then, plays the game with all players.
      */
-    Casino.prototype.simulateOneRound = function () {
-        var startingProfit = this._profits;
+    simulateOneRound() {
+        const startingProfit = this._profits;
         console.log("-----------------------");
         console.log("beginning round", this._currentRound);
-        for (var _i = 0, _a = this._games; _i < _a.length; _i++) {
-            var game = _a[_i];
+        for (let game of this._games) {
             this.determineWhoIsStillPlaying();
             // add each player who is still playing to the game.
             // have them use the bet size determined by their personality.
-            for (var _b = 0, _c = this._gamblers; _b < _c.length; _b++) {
-                var player = _c[_b];
+            for (let player of this._gamblers) {
                 game.addPlayer(player, player.getBetSize());
             }
-            var gameStartingProfit = this._profits;
+            const gameStartingProfit = this._profits;
             game.playGame();
             console.log("casino made", casino._profits - gameStartingProfit, "on this game.");
             console.log();
@@ -512,27 +454,26 @@ var Casino = /** @class */ (function () {
         console.log("round complete. casino made: ", this._profits - startingProfit);
         console.log("total profit:", this._profits);
         console.log("-----------------------");
-    };
+    }
     /**
      * Run the simulation until either the maximum number of games is reached,
      * or no one is left in the casino.
      */
-    Casino.prototype.simulate = function () {
+    simulate() {
         while (this._currentRound < this._maxRounds && this._gamblers.size > 0) {
             this.simulateOneRound();
             console.log();
             this._currentRound++;
         }
         console.log("simulation complete");
-    };
+    }
     /**
      * Update and list the people who are still playing.
      */
-    Casino.prototype.determineWhoIsStillPlaying = function () {
-        var gamblersWhoLeft = [];
+    determineWhoIsStillPlaying() {
+        const gamblersWhoLeft = [];
         // update and list of who is still playing
-        for (var _i = 0, _a = this._gamblers.keys(); _i < _a.length; _i++) {
-            var gambler = _a[_i];
+        for (let gambler of this._gamblers.keys()) {
             console.log(gambler.name, ": ", gambler.money);
             if (gambler.isFinished()) {
                 // add this person to the list of gamblers to remove.
@@ -550,14 +491,12 @@ var Casino = /** @class */ (function () {
             }
         }
         // remove the gamblers who left from the set
-        for (var _b = 0, gamblersWhoLeft_1 = gamblersWhoLeft; _b < gamblersWhoLeft_1.length; _b++) {
-            var leaver = gamblersWhoLeft_1[_b];
+        for (let leaver of gamblersWhoLeft) {
             this._gamblers.delete(leaver);
         }
-    };
-    return Casino;
-}());
-var MAX_N_ROUNDS = 5;
+    }
+}
+const MAX_N_ROUNDS = 5;
 // main:
-var casino = new Casino(MAX_N_ROUNDS);
+const casino = new Casino(MAX_N_ROUNDS);
 casino.simulate();
