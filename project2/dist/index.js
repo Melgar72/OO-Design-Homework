@@ -46,7 +46,7 @@ class Game {
         // them. Deduct that much money from the casino.
         for (let winner of winners) {
             const bet = this._book.get(winner);
-            const winnings = bet * this.profitMultiplier(winner);
+            const winnings = Math.round(bet * this.profitMultiplier(winner) * 100) / 100;
             winner.addMoney(winnings);
             this._casino.addProfit(-winnings);
             console.log(" ", winner.name, "is a winner! they won: ", winnings);
@@ -61,12 +61,6 @@ class Game {
             /*
             also remove losers. the book will be empty after calling
             playGame
-            Note: it might be nice to make a functional version of
-            this where the book is an argument to the method
-            IRL I think this design would be
-            nicer, but it will be more obvious why when you take
-            programming language design and learn about functional
-            programming.
             */
             this._book.delete(loser);
         }
@@ -110,17 +104,21 @@ class TailsIWin extends Game {
     }
     // Required method
     simulateGame() {
+        this.winners = [];
         // flip coin
         // 0->1 , <.5 = tails, >= .5 = heads
         // if you don't win, you lose
         // return winners only
         // no need to mark losers
-        console.log("We are in the game.");
         if (Math.random() >= .5) {
+            console.log("coin was heads.");
             for (let player of this.getPlayers()) {
                 // win
                 this.winners.push(player);
             }
+        }
+        else {
+            console.log("coin was tails.");
         }
         return this.winners;
     }
@@ -148,11 +146,18 @@ class GuessTheNumber extends Game {
     constructor(name, casino) {
         super(name, casino);
         this.winners = [];
-        this.playerNumGuess = randomInt(5);
-        this.casinoNumGuess = randomInt(5);
+        this.playerNumGuess = 6;
+        this.casinoNumGuess = 6;
     }
+    // fix randomInt usage. doesn't update, and all
+    // players share the number
     simulateGame() {
+        this.winners = [];
+        this.casinoNumGuess = randomInt(5);
+        console.log("the correct number is : ", this.casinoNumGuess);
         for (let player of this.getPlayers()) {
+            this.playerNumGuess = randomInt(5);
+            console.log(player.name, " guessed ", this.playerNumGuess);
             if (this.playerNumGuess == this.casinoNumGuess) {
                 this.winners.push(player);
             }
@@ -178,38 +183,49 @@ class OffTrackGuineaPigRacing extends Game {
     constructor(name, casino) {
         super(name, casino);
         this.winners = [];
-        this.playerPig = randomInt(4);
+        // removed randomInt from constructor call
+        // instead calling inside simulateGame
+        // to try and make fresh randoms
+        this.playerPig = 4;
+        this.winningPig = 4;
+        this.holdRandom = 0;
     }
     simulateGame() {
+        this.winners = [];
+        // should hopefully then not be constant random calls
+        // and hold whichever random they received this call
+        this.holdRandom = Math.random();
         // for loop for players
-        // switch case for 0->3
-        // default no pigs in this race? 
         for (let player of this.getPlayers()) {
-            switch (this.playerPig) {
-                case 0:
-                    if (Math.random() <= .5) {
-                        this.winners.push(player);
-                        break;
-                    }
-                case 1:
-                    if (Math.random() <= .25) {
-                        this.winners.push(player);
-                        break;
-                    }
-                case 2:
-                    if (Math.random() <= .125) {
-                        this.winners.push(player);
-                        break;
-                    }
-                case 3:
-                    if (Math.random() <= .125) {
-                        this.winners.push(player);
-                        break;
-                    }
-                default:
-                    console.log("No pigs in this race?");
+            this.playerPig = randomInt(4);
+            console.log(player.name, "bets on #", this.playerPig);
+            // random calls, checks percentage to dictate winning pig
+            if (this.holdRandom < .5) {
+                this.winningPig = 0;
+            }
+            else if (this.holdRandom >= .5 && this.holdRandom < .75) {
+                this.winningPig = 1;
+            }
+            else if (this.holdRandom >= .75 && this.holdRandom < .875) {
+                this.winningPig = 2;
+            }
+            else if (this.holdRandom >= .875 && this.holdRandom < 1) {
+                this.winningPig = 3;
+            }
+            // we already have the winning pig decided
+            // take out math.random from inside each if statement
+            // use the percentages for calculation outside/beforehand
+            if ((this.playerPig == this.winningPig) && this.winningPig == 0) {
+                this.winners.push(player);
+            }
+            else if ((this.playerPig == this.winningPig) && this.winningPig == 1) {
+                this.winners.push(player);
+            }
+            else if ((this.playerPig == this.winningPig) && (this.winningPig == 2 || this.winningPig == 3)) {
+                this.winners.push(player);
             }
         }
+        console.log("the winning pig is: #", this.winningPig);
         return this.winners;
     }
     profitMultiplier(_gambler) {
@@ -310,7 +326,7 @@ class StableGambler extends Gambler {
     getBetSize() {
         // if bet size is larger than gambler bank, standard bet
         // if bet size is >= gambler bank, bet remaining money
-        if (this._bet > this.money) {
+        if (this._bet <= this.money) {
             return this._bet;
         }
         else {
@@ -399,9 +415,9 @@ class StreakGambler extends Gambler {
 class Casino {
     constructor(maxRounds) {
         this._games = [
-            new TailsIWin("Tails I Win", casino),
-            new GuessTheNumber("Guess the Number", casino),
-            new OffTrackGuineaPigRacing("Off Track Guineapig Racing", casino),
+            new TailsIWin("Tails I Win", this),
+            new GuessTheNumber("Guess the Number", this),
+            new OffTrackGuineaPigRacing("Off Track Guineapig Racing", this),
         ];
         this._profits = 0;
         this._gamblers = new Set([
