@@ -1,11 +1,11 @@
 // Github: https://github.com/Melgar72/OO-Design-Homework/tree/main/project2
 
-
-// this is an abstract class, meaning, we cannot write "new Game(...)".
-// this is because the class is missing the "simluateGame" method. 
-// that method is declared "abstract", meaning "our child classes will have to 
-// fill in what it does". 
-/** Represents a casino game. */
+/* 
+ * Represents a casino game. 
+ * Abstract class Game must be extended from.
+ * Contains simulateGame method which needs to 
+ * be overriden by child classes.
+*/
 abstract class Game {
     // every game is required to store a name
     private _name: string;
@@ -14,68 +14,42 @@ abstract class Game {
     // maps each player to how much money they are betting.
     private _book: Map< Gambler, number >; 
 
-    /*
-    the casino the game belongs to.
-    we could pass the casino in as an argument, along with book.
-    there are good benefits to that design, but let's do it the more
-    object-oriented, less functional way for our own education:
-    */
+    // The casino the game belongs to.
     private _casino: Casino;
 
     public get name(): string { return this._name }
 
-    // to construct a game, you have to give it a name
     /* 
-    Construct a casino game with the given name, belonging to the
-    given casino.
+     * Construct a casino game with the given name, belonging to the
+     * given casino.
     */
     constructor( name: string, casino: Casino ) {
         this._name = name;
         this._book = new Map();
         this._casino = casino;
     }
-    /*
-    but wait, I thought we couldn't construct a Game?
-    we can't, we aren't allowed to write new Game(...);
-    but we are allowed to write new Blackjack(...), and Blackjack is a kind 
-    of game. So Blackjack's constructor will call Game's constructor 
-    (using the super keyword)
-    */
 
     /*
-    this method is abstract. each game will do it differently. 
-    however, because it's here, each game *has* to fill in its code. 
-    this means it's safe to have code like this:
-    function something(game: Game) {
-         ...
-         game.playGame();
-         ...   
-    }
-    we can then write something(blackjack) and it will work, because
-    blackjack is a Game, so it can be passed into game, and we know
-    we can call "playGame" on it.
+     * Run the game and return who won.
+     * Called by playGame method in base class from 
+     * Casino simulation methods.
+     * Override in child clases to create the games.
+     * Return array of winners.
     */
-    
-    /** Actually run the game and return who won. */
     protected abstract simulateGame(): Gambler[];
-    // the child class will figure out which gamblers won and return them.
-    // this method is abstract: it has no definition. It's up to the child
-    // classes to decide what it does. 
 
 
     /**
      * This method tells us how much money a particular person will win.
-     * By default, we just return 2x the bet. However, in some games, 
-     * how much we return depends on how the gambler bet. Note that none 
-     * of the games actually double the player's money, so you might want
-     * to pick a different value here.
+     * By default, we just return 2x the bet. Most if not all games
+     * override this method to return a different value.
      * @returns How much to multiply the winnings by
      */
     protected profitMultiplier( _gambler: Gambler ): number { return 2; }
 
-    // this method is *not* abstract, but it calls an abstract method.
-    // yes: non-abstract methods can call abstract methods in the same class.
-    /** Play the game and give the winners their moeney.
+    /* 
+     * this method is *not* abstract, but it calls an abstract method.
+     * Play the game and give the winners their money.
      * Prints all the winners. Removes all elements of this.book. 
      * Updates the casino's profits and losses.
      */
@@ -116,39 +90,33 @@ abstract class Game {
         }
     }
 
-    // this function is *not* abstract. We are filling in it's code right now.
-    // the child classes will not override this method. It will do the same
-    // thing on each child class, so they do not provide their own version of.
     /**
+     * this function is *not* abstract.
+     * the child classes will not override this method. It will do the same
+     * thing on each child class.
      * Add a player to the game.
      * @param g The gambler to add to the game.
      * @param bet The amount they are betting.
      */
     public addPlayer( g: Gambler, bet: number ): void {
         this._book.set( g, bet );
-        /*
-        you might wonder why we need a method for this? aren't we just
-        doing one line of code? yes, and many programmers will choose to 
-        avoid this function. one reason to have the function, however, is  
-        that it makes it easier to do more stuff when we add a player 
-        (i.e., logging it to a file somewhere). However, this flexibility
-        comes at the cost of a little bit of complexity. 
-        */
     }
 
     /** Returns a list of people playing the game. */
     public getPlayers(): Gambler[] {
-        // this.book.keys() returns an iterator, which is an object that 
-        // allows us to scan over a collection using a for loop. We use
-        // Array.from(...) to scan over the iterator and add its elements
-        // into an array.
+        /*
+         * this.book.keys() returns an iterator.  
+         * allows us to scan over collection with for loop.
+         * use Array.from() to scan over iterator
+         * and add elements into an array.
+         */
         return Array.from(this._book.keys());
     }
 }
 
 /** This is a game where the players all place their bets at the same 
  * time. The dealer will flip a coin. If the coin is heads, the players 
- * win and their money is doubled. Otherwise, the players lose their bets. */ 
+ * win and their bet money is multiplied by 1.9x. Otherwise, the players lose their bets. */ 
 class TailsIWin extends Game {
     private winners : Gambler[];
 
@@ -161,11 +129,13 @@ class TailsIWin extends Game {
     // Required method
     override simulateGame(): Gambler[] {
         this.winners = [];
-        // flip coin
-        // 0->1 , <.5 = tails, >= .5 = heads
-        // if you don't win, you lose
-        // return winners only
-        // no need to mark losers
+        /*
+         * flip coin
+         * 0->1 , <.5 = tails, >= .5 = heads
+         * if you don't win, you lose
+         * return winners only
+         * no need to mark losers
+         */
         if(Math.random() >= .5){
             console.log("coin was heads.");
             for(let player of this.getPlayers()){
@@ -178,7 +148,10 @@ class TailsIWin extends Game {
         return this.winners;
     }
 
-    // Is the default profitMultiplier behavior okay? 
+    // override default profitMult
+    protected override profitMultiplier(_gambler: Gambler): number {
+        return 1.9;
+    }
 }
 
 
@@ -210,16 +183,15 @@ class GuessTheNumber extends Game {
     constructor(name: string, casino: Casino){
         super(name, casino);
         this.winners = [];
-        this.playerNumGuess = 6;
-        this.casinoNumGuess = 6;
+        this.playerNumGuess = 6; // stand-in value
+        this.casinoNumGuess = 6; // stand-in value
     }
 
-    // fix randomInt usage. doesn't update, and all
-    // players share the number
-
-
     override simulateGame(): Gambler[] {
-        this.winners = [];
+        // re-instantiate winners.
+        // wasn't updating properly between games without.
+        this.winners = [];  
+        // call randomInt as game is played
         this.casinoNumGuess = randomInt(5);
         console.log("the correct number is : ", this.casinoNumGuess);
         for(let player of this.getPlayers()){
@@ -232,8 +204,7 @@ class GuessTheNumber extends Game {
         return this.winners;
     }
 
-    // protected? 
-    override profitMultiplier(_gambler: Gambler): number {
+    protected override profitMultiplier(_gambler: Gambler): number {
         return 4.5;
     }
 }
@@ -245,8 +216,6 @@ class GuessTheNumber extends Game {
  * Pig #2 has a 12.5% chance of winning, and pays out 7.6 if they win.
  * Pig #3 has a 12.5% chance of winning, and pays out 7.6 if they win.
  * 
- * There are no complicated horse-racing-style bets (e.g., place, show, etc.),
- * each player just picks a pig. 
  */
 class OffTrackGuineaPigRacing extends Game {
     private winners : Gambler[];
@@ -257,7 +226,6 @@ class OffTrackGuineaPigRacing extends Game {
     constructor(name: string, casino: Casino){
         super(name, casino);
         this.winners = [];
-
         // removed randomInt from constructor call
         // instead calling inside simulateGame
         // to try and make fresh randoms
@@ -267,9 +235,7 @@ class OffTrackGuineaPigRacing extends Game {
     }
 
     override simulateGame(): Gambler[] {
-        this.winners = [];
-        // should hopefully then not be constant random calls
-        // and hold whichever random they received this call
+        this.winners = [];  
         this.holdRandom = Math.random();
         // for loop for players
         for(let player of this.getPlayers()){
@@ -283,8 +249,7 @@ class OffTrackGuineaPigRacing extends Game {
             else if(this.holdRandom >= .875 && this.holdRandom < 1){this.winningPig = 3;}
 
             // we already have the winning pig decided
-            // take out math.random from inside each if statement
-            // use the percentages for calculation outside/beforehand
+            // check if players guessed the winning pig and push winners
             if((this.playerPig == this.winningPig) && this.winningPig == 0){this.winners.push(player);} 
             else if((this.playerPig == this.winningPig) && this.winningPig == 1){this.winners.push(player);}
             else if((this.playerPig == this.winningPig) && (this.winningPig == 2 || this.winningPig == 3)){this.winners.push(player);}
@@ -316,7 +281,6 @@ abstract class Gambler {
         this._name = name;
         this._money = startingFunds;
         this._target = targetFunds;
-        //throw new Error( "YOUR CODE HERE" )
     }
 
     // These are properties. 
@@ -341,7 +305,7 @@ abstract class Gambler {
      * @param amount The amount of money to add. Negative means to remove.
      */
     addMoney( amount: number ): void {
-        this._money += amount;
+        this._money += Math.round(amount * 100) / 100;
         //throw new Error( "YOUR CODE HERE" )
     }
 
@@ -445,7 +409,7 @@ class HighRiskGambler extends Gambler {
         if(this.money <= this._yoloAmount){
             return this.money;
         } else{
-            return Math.floor(this.money / 2);
+            return Math.round((this.money / 2) * 100) / 100;
         }
     }
 }
@@ -505,7 +469,7 @@ class StreakGambler extends Gambler {
     override addMoney(amount: number): void {
         // still need to add/sub money
         // verify setter works properly
-        this.money += amount;
+        this.money += Math.round(amount * 100) / 100;
 
         // change multipliers
         // If lost money, reduce mult, else gain mult
@@ -598,12 +562,12 @@ class Casino {
             game.playGame();
             console.log( 
                 "casino made", 
-                casino._profits - gameStartingProfit, "on this game.")
+                Math.round((casino._profits - gameStartingProfit) * 100) / 100, "on this game.")
             console.log();
         }
         console.log( 
-            "round complete. casino made: ", this._profits - startingProfit );
-        console.log( "total profit:", this._profits );
+            "round complete. casino made: ", Math.round((this._profits - startingProfit) * 100) / 100);
+        console.log( "total profit:", Math.round(this._profits * 100) / 100);
         console.log( "-----------------------" );
     }
 
@@ -629,7 +593,7 @@ class Casino {
         
         // update and list of who is still playing
         for( let gambler of this._gamblers.keys() ) {
-            console.log( gambler.name, ": ", gambler.money );
+            console.log( gambler.name, ": $", gambler.money);
             
             if( gambler.isFinished() ) {
                 // add this person to the list of gamblers to remove.
