@@ -86,7 +86,8 @@ class Game {
  * time. The dealer will flip a coin. If the coin is heads, the players
  * win and their bet money is multiplied by 1.9x. Otherwise, the players lose their bets. */
 class TailsIWin extends Game {
-    // You need to add a constructor. What should go in it?
+    // Construct game with name and casino for base class
+    // Game needs a winners array to return
     constructor(name, casino) {
         super(name, casino);
         this.winners = [];
@@ -129,8 +130,6 @@ function randomInt(upper) {
     // Math.random() goes between 0 and 1, but never hits exactly 1
     return Math.floor(Math.random() * upper);
 }
-/// This is a game where each player randomly picks a number from 0 to 4.
-/// If the dealer  
 /**
  * This is a game where each player randomly picks a number from 0 to 4
  * (inclusive). The dealer also picks a number from 0 to 4. If a player
@@ -160,6 +159,7 @@ class GuessTheNumber extends Game {
         }
         return this.winners;
     }
+    // Multiplier in this game is 4.5
     profitMultiplier(_gambler) {
         return 4.5;
     }
@@ -171,8 +171,6 @@ class GuessTheNumber extends Game {
  * Pig #2 has a 12.5% chance of winning, and pays out 7.6 if they win.
  * Pig #3 has a 12.5% chance of winning, and pays out 7.6 if they win.
  *
- * There are no complicated horse-racing-style bets (e.g., place, show, etc.),
- * each player just picks a pig.
  */
 class OffTrackGuineaPigRacing extends Game {
     constructor(name, casino) {
@@ -181,14 +179,12 @@ class OffTrackGuineaPigRacing extends Game {
         // removed randomInt from constructor call
         // instead calling inside simulateGame
         // to try and make fresh randoms
-        this.playerPig = 4;
-        this.winningPig = 4;
-        this.holdRandom = 0;
+        this.playerPig = 4; // stand-in value
+        this.winningPig = 4; // stand-in value
+        this.holdRandom = 0; // stand-in value
     }
     simulateGame() {
         this.winners = [];
-        // should hopefully then not be constant random calls
-        // and hold whichever random they received this call
         this.holdRandom = Math.random();
         // for loop for players
         for (let player of this.getPlayers()) {
@@ -208,8 +204,7 @@ class OffTrackGuineaPigRacing extends Game {
                 this.winningPig = 3;
             }
             // we already have the winning pig decided
-            // take out math.random from inside each if statement
-            // use the percentages for calculation outside/beforehand
+            // check if players guessed the winning pig and push winners
             if ((this.playerPig == this.winningPig) && this.winningPig == 0) {
                 this.winners.push(player);
             }
@@ -223,6 +218,9 @@ class OffTrackGuineaPigRacing extends Game {
         console.log("the winning pig is: #", this.winningPig);
         return this.winners;
     }
+    // various multipliers
+    // winning pig and player pig are same 
+    // when profitMult is called
     profitMultiplier(_gambler) {
         if (this.playerPig == 0) {
             return 1.9;
@@ -243,7 +241,6 @@ class Gambler {
         this._name = name;
         this._money = startingFunds;
         this._target = targetFunds;
-        //throw new Error( "YOUR CODE HERE" )
     }
     // These are properties. 
     // When we create a gambler: const gambler = new Gambler(...);
@@ -266,8 +263,8 @@ class Gambler {
      * @param amount The amount of money to add. Negative means to remove.
      */
     addMoney(amount) {
+        // rounding to avoid to try avoiding insane floats
         this._money += Math.round(amount * 100) / 100;
-        //throw new Error( "YOUR CODE HERE" )
     }
     /**
      * @returns Whether the gambler has hit their target.
@@ -279,19 +276,20 @@ class Gambler {
         else {
             return false;
         }
-        //throw new Error( "YOUR CODE HERE" ) 
     }
     /**
      * @returns Whether the gambler has run out of money.
      */
     bankrupt() {
-        if (this._money <= 0) {
+        // Weird float math is occuring due to multipliers
+        // so we are checking if they have less than
+        // a penny. 
+        if (this._money <= 0.01) {
             return true;
         }
         else {
             return false;
         }
-        //throw new Error( "YOUR CODE HERE" ) 
     }
     /**
      * @returns Whether the gambler is finished (i.e., if they've run out
@@ -304,7 +302,6 @@ class Gambler {
         else {
             return false;
         }
-        //throw new Error( "YOUR CODE HERE" )
     }
 }
 /**
@@ -319,15 +316,16 @@ class StableGambler extends Gambler {
         this._bet = stableBet;
     }
     getBetSize() {
-        // if bet size is larger than gambler bank, standard bet
-        // if bet size is >= gambler bank, bet remaining money
+        // if bet size is less than gambler bank, standard bet
+        // if bet size is larger than gambler bank, bet remaining money
+        // stable bet is minimum bet, and if the minimum bet
+        // is greater than the remaining funds, bet remaining funds.
         if (this._bet <= this.money) {
             return this._bet;
         }
         else {
             return this.money;
         }
-        //throw new Error( "YOUR CODE HERE" );
     }
 }
 /**
@@ -343,7 +341,6 @@ class HighRiskGambler extends Gambler {
     constructor(name, startingFunds, yoloAmnt) {
         super(name, startingFunds, startingFunds * 5);
         this._yoloAmount = yoloAmnt;
-        //throw new Error( "YOUR CODE HERE" );
     }
     getBetSize() {
         // if this.money <= yolo , bet this.money
@@ -352,6 +349,10 @@ class HighRiskGambler extends Gambler {
             return this.money;
         }
         else {
+            // betting half of remaining money on constant losses
+            // will quickly lead to longer floats
+            // use math.round to only bet in typical
+            // dollar/coin amounts. 
             return Math.round((this.money / 2) * 100) / 100;
         }
     }
@@ -377,9 +378,13 @@ class StreakGambler extends Gambler {
         this._loseMult = loseMult;
     }
     getBetSize() {
-        // if this.money <= this._minbet
+        // if remaining money is less than 
+        // preset minimum bet, bet remaining
         if (this.money <= this._minBet) {
             return this.money;
+            // if current bet (firstBet) is less than
+            // the minimum bet, current bet is minBet
+            // (caused by loss streak & loss mult)
         }
         else if (this._firstBet < this._minBet) {
             // if firstBet < minBet

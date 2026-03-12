@@ -120,7 +120,8 @@ abstract class Game {
 class TailsIWin extends Game {
     private winners : Gambler[];
 
-    // You need to add a constructor. What should go in it?
+    // Construct game with name and casino for base class
+    // Game needs a winners array to return
     constructor(name: string, casino: Casino){
         super(name, casino);
         this.winners = [];
@@ -167,8 +168,6 @@ function randomInt( upper: number ) {
     return Math.floor( Math.random() * upper );
 }
 
-/// This is a game where each player randomly picks a number from 0 to 4.
-/// If the dealer  
 /**
  * This is a game where each player randomly picks a number from 0 to 4
  * (inclusive). The dealer also picks a number from 0 to 4. If a player
@@ -190,7 +189,8 @@ class GuessTheNumber extends Game {
     override simulateGame(): Gambler[] {
         // re-instantiate winners.
         // wasn't updating properly between games without.
-        this.winners = [];  
+        this.winners = [];
+
         // call randomInt as game is played
         this.casinoNumGuess = randomInt(5);
         console.log("the correct number is : ", this.casinoNumGuess);
@@ -204,6 +204,7 @@ class GuessTheNumber extends Game {
         return this.winners;
     }
 
+    // Multiplier in this game is 4.5
     protected override profitMultiplier(_gambler: Gambler): number {
         return 4.5;
     }
@@ -229,9 +230,9 @@ class OffTrackGuineaPigRacing extends Game {
         // removed randomInt from constructor call
         // instead calling inside simulateGame
         // to try and make fresh randoms
-        this.playerPig = 4;
-        this.winningPig = 4;
-        this.holdRandom = 0;
+        this.playerPig = 4;     // stand-in value
+        this.winningPig = 4;    // stand-in value
+        this.holdRandom = 0;    // stand-in value
     }
 
     override simulateGame(): Gambler[] {
@@ -258,6 +259,9 @@ class OffTrackGuineaPigRacing extends Game {
         return this.winners;
     }
 
+    // various multipliers
+    // winning pig and player pig are same 
+    // when profitMult is called
     override profitMultiplier(_gambler: Gambler): number {
         if(this.playerPig == 0){return 1.9;}
         else if(this.playerPig == 1){return 3.8;}
@@ -305,8 +309,8 @@ abstract class Gambler {
      * @param amount The amount of money to add. Negative means to remove.
      */
     addMoney( amount: number ): void {
+        // rounding to avoid to try avoiding insane floats
         this._money += Math.round(amount * 100) / 100;
-        //throw new Error( "YOUR CODE HERE" )
     }
 
     /**
@@ -318,7 +322,6 @@ abstract class Gambler {
         } else{
             return false;
         }
-        //throw new Error( "YOUR CODE HERE" ) 
     }
 
 
@@ -326,12 +329,14 @@ abstract class Gambler {
      * @returns Whether the gambler has run out of money.
      */
     public bankrupt(): boolean {
-        if(this._money <= 0){
+        // Weird float math is occuring due to multipliers
+        // so we are checking if they have less than
+        // a penny. 
+        if(this._money <= 0.01){
             return true;
         } else {
             return false;
         }
-        //throw new Error( "YOUR CODE HERE" ) 
     }
     
     /**
@@ -341,11 +346,11 @@ abstract class Gambler {
     public isFinished(): boolean { 
         if(this.hitTarget() || this.bankrupt()){return true;}
         else{return false;}
-        //throw new Error( "YOUR CODE HERE" )
     }
 
     /**
      * @returns How much the gambler is going to bet next.
+     * Overriden in each subclass
      */
     public abstract getBetSize(): number;
 }
@@ -369,14 +374,15 @@ class StableGambler extends Gambler {
     }
 
     override getBetSize(): number {
-        // if bet size is larger than gambler bank, standard bet
-        // if bet size is >= gambler bank, bet remaining money
+        // if bet size is less than gambler bank, standard bet
+        // if bet size is larger than gambler bank, bet remaining money
+        // stable bet is minimum bet, and if the minimum bet
+        // is greater than the remaining funds, bet remaining funds.
         if(this._bet <= this.money){
             return this._bet;
         } else {
             return this.money;
         }
-        //throw new Error( "YOUR CODE HERE" );
     }
 }
 
@@ -400,7 +406,6 @@ class HighRiskGambler extends Gambler {
     ) {
         super(name, startingFunds, startingFunds * 5);
         this._yoloAmount = yoloAmnt;
-        //throw new Error( "YOUR CODE HERE" );
     }
 
     override getBetSize(): number {
@@ -409,6 +414,10 @@ class HighRiskGambler extends Gambler {
         if(this.money <= this._yoloAmount){
             return this.money;
         } else{
+            // betting half of remaining money on constant losses
+            // will quickly lead to longer floats
+            // use math.round to only bet in typical
+            // dollar/coin amounts. 
             return Math.round((this.money / 2) * 100) / 100;
         }
     }
@@ -425,7 +434,6 @@ class HighRiskGambler extends Gambler {
  * How do we detect whether we won or lost? Override the addMoney method.
  */
 class StreakGambler extends Gambler {
-    // YOUR CODE HERE
  
     private _firstBet: number;
     private _minBet: number;
@@ -451,9 +459,13 @@ class StreakGambler extends Gambler {
     }
 
     override getBetSize(): number {
-        // if this.money <= this._minbet
+        // if remaining money is less than 
+        // preset minimum bet, bet remaining
         if(this.money <= this._minBet){
             return this.money;
+        // if current bet (firstBet) is less than
+        // the minimum bet, current bet is minBet
+        // (caused by loss streak & loss mult)
         }else if(this._firstBet < this._minBet){
             // if firstBet < minBet
             this._firstBet = this._minBet;
