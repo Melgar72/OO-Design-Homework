@@ -1,0 +1,14 @@
+{
+  "name": "project3",
+  "version": "1.0.0",
+  "descrption": "project3 casino refactor",
+  "license": "UNLICENSED",
+  "author": "Diego Melgar-Aguilar",
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "@types/readline-sync": "^1.4.8"
+  },
+  "dependencies": {
+    "readline-sync": "^1.4.10"
+  }
+}
