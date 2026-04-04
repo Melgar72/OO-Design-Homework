@@ -1,58 +1,32 @@
-// Github: https://github.com/Melgar72/OO-Design-Homework/tree/main/project2
+// Github: https://github.com/Melgar72/OO-Design-Homework/tree/main/project3
 
-/* 
- * Represents a casino game. 
- * Abstract class Game must be extended from.
- * Contains simulateGame method which needs to 
- * be overriden by child classes.
-*/
-abstract class Game {
-    // every game is required to store a name
+// Create an interface that has simulateGame()
+// All game classes will implement this
+
+interface simulation{
+    // Run the game and return winning gamblers
+    simulateGame(): Gambler[];
+    profitMultiplier(_gambler: Gambler): number;
+}
+
+// Create a class for the non-abstract portions
+// of the Game class. 
+// - name, playGame, etc.
+class Game {
     private _name: string;
-
-    // every game has a betting book. the betting book is a hashmap that 
-    // maps each player to how much money they are betting.
     private _book: Map< Gambler, number >; 
-
-    // The casino the game belongs to.
     private _casino: Casino;
 
     public get name(): string { return this._name }
 
-    /* 
-     * Construct a casino game with the given name, belonging to the
-     * given casino.
-    */
     constructor( name: string, casino: Casino ) {
         this._name = name;
         this._book = new Map();
         this._casino = casino;
     }
 
-    /*
-     * Run the game and return who won.
-     * Called by playGame method in base class from 
-     * Casino simulation methods.
-     * Override in child clases to create the games.
-     * Return array of winners.
-    */
-    protected abstract simulateGame(): Gambler[];
-
-
-    /**
-     * This method tells us how much money a particular person will win.
-     * By default, we just return 2x the bet. Most if not all games
-     * override this method to return a different value.
-     * @returns How much to multiply the winnings by
-     */
     protected profitMultiplier( _gambler: Gambler ): number { return 2; }
 
-    /* 
-     * this method is *not* abstract, but it calls an abstract method.
-     * Play the game and give the winners their money.
-     * Prints all the winners. Removes all elements of this.book. 
-     * Updates the casino's profits and losses.
-     */
     public playGame(): void {
         console.log( "playing", this.name, "with book:" );
         for( let [player, bet] of this._book ) {
@@ -82,53 +56,41 @@ abstract class Game {
             console.log( " ", loser.name, "has lost!" );
             loser.addMoney( -bet ); // subtract money from losers;
             casino.addProfit( bet ); // give it to the casino
-            /*
-            also remove losers. the book will be empty after calling 
-            playGame
-            */
             this._book.delete( loser );
         }
     }
 
-    /**
-     * this function is *not* abstract.
-     * the child classes will not override this method. It will do the same
-     * thing on each child class.
-     * Add a player to the game.
-     * @param g The gambler to add to the game.
-     * @param bet The amount they are betting.
-     */
     public addPlayer( g: Gambler, bet: number ): void {
         this._book.set( g, bet );
     }
 
-    /** Returns a list of people playing the game. */
     public getPlayers(): Gambler[] {
-        /*
-         * this.book.keys() returns an iterator.  
-         * allows us to scan over collection with for loop.
-         * use Array.from() to scan over iterator
-         * and add elements into an array.
-         */
         return Array.from(this._book.keys());
     }
 }
 
-/** This is a game where the players all place their bets at the same 
- * time. The dealer will flip a coin. If the coin is heads, the players 
- * win and their bet money is multiplied by 1.9x. Otherwise, the players lose their bets. */ 
-class TailsIWin extends Game {
+
+// Individual games will take the class of non-abstract 
+// portions as a field
+
+// Repeat for Gamblers
+
+
+
+class TailsIWin implements simulation {
     private winners : Gambler[];
+
+    private g: Game;
 
     // Construct game with name and casino for base class
     // Game needs a winners array to return
-    constructor(name: string, casino: Casino){
-        super(name, casino);
+    constructor(){
         this.winners = [];
+        this.g = new Game("Tails I Win", casino);
     }
 
     // Required method
-    override simulateGame(): Gambler[] {
+    simulateGame(): Gambler[] {
         this.winners = [];
         /*
          * flip coin
@@ -139,7 +101,7 @@ class TailsIWin extends Game {
          */
         if(Math.random() >= .5){
             console.log("coin was heads.");
-            for(let player of this.getPlayers()){
+            for(let player of this.g.getPlayers()){
                 // win
                 this.winners.push(player);
             }
@@ -149,44 +111,30 @@ class TailsIWin extends Game {
         return this.winners;
     }
 
-    // override default profitMult
-    protected override profitMultiplier(_gambler: Gambler): number {
+    profitMultiplier(_gambler: Gambler): number {
         return 1.9;
     }
 }
 
-
-/**
- * Helper function to generate uniform random numbers between [0, upper).
- * So randomInt( 5 ) generates a number between 0 and 4.
- * @param upper The exclusive upper bound (i.e., the number generated will be
- * at most one less than this number)
- * @returns A randum number in the range [0, upper)
- */
 function randomInt( upper: number ) {
     // Math.random() goes between 0 and 1, but never hits exactly 1
     return Math.floor( Math.random() * upper );
 }
 
-/**
- * This is a game where each player randomly picks a number from 0 to 4
- * (inclusive). The dealer also picks a number from 0 to 4. If a player
- * picks the same number as the dealer, they get back 4.5x their bet.
- * (total profit of 3.5x). Otherwise, they lose their money.
- */
-class GuessTheNumber extends Game {
+class GuessTheNumber implements simulation {
     private winners : Gambler[];
     private playerNumGuess : number;
     private casinoNumGuess : number;
+    private g: Game;
 
-    constructor(name: string, casino: Casino){
-        super(name, casino);
+    constructor(){
         this.winners = [];
         this.playerNumGuess = 6; // stand-in value
         this.casinoNumGuess = 6; // stand-in value
+        this.g = new Game("Guess the Number", casino);
     }
 
-    override simulateGame(): Gambler[] {
+    simulateGame(): Gambler[] {
         // re-instantiate winners.
         // wasn't updating properly between games without.
         this.winners = [];
@@ -194,7 +142,7 @@ class GuessTheNumber extends Game {
         // call randomInt as game is played
         this.casinoNumGuess = randomInt(5);
         console.log("the correct number is : ", this.casinoNumGuess);
-        for(let player of this.getPlayers()){
+        for(let player of this.g.getPlayers()){
             this.playerNumGuess = randomInt(5);
             console.log(player.name, " guessed ", this.playerNumGuess);
             if(this.playerNumGuess == this.casinoNumGuess){
@@ -205,27 +153,19 @@ class GuessTheNumber extends Game {
     }
 
     // Multiplier in this game is 4.5
-    protected override profitMultiplier(_gambler: Gambler): number {
+    profitMultiplier(_gambler: Gambler): number {
         return 4.5;
     }
 }
 
-/**
- * Simulated guinea-pig racing. Players choose a pig from 0 to 3.
- * Pig #0 has a 50% chance of winning, and pays out 1.9 if they win. 
- * Pig #1 has a 25% chance of winning, and pays out 3.8 if they win.
- * Pig #2 has a 12.5% chance of winning, and pays out 7.6 if they win.
- * Pig #3 has a 12.5% chance of winning, and pays out 7.6 if they win.
- * 
- */
-class OffTrackGuineaPigRacing extends Game {
+class OffTrackGuineaPigRacing implements simulation {
     private winners : Gambler[];
     private playerPig : number;
     private winningPig: number;
     private holdRandom: number;
+    private g: Game;
 
-    constructor(name: string, casino: Casino){
-        super(name, casino);
+    constructor(){
         this.winners = [];
         // removed randomInt from constructor call
         // instead calling inside simulateGame
@@ -233,13 +173,14 @@ class OffTrackGuineaPigRacing extends Game {
         this.playerPig = 4;     // stand-in value
         this.winningPig = 4;    // stand-in value
         this.holdRandom = 0;    // stand-in value
+        this.g = new Game("Off Track Guineapig Racing", casino);
     }
 
-    override simulateGame(): Gambler[] {
+    simulateGame(): Gambler[] {
         this.winners = [];  
         this.holdRandom = Math.random();
         // for loop for players
-        for(let player of this.getPlayers()){
+        for(let player of this.g.getPlayers()){
             this.playerPig = randomInt(4);
             console.log(player.name, "bets on #", this.playerPig);
 
@@ -262,13 +203,17 @@ class OffTrackGuineaPigRacing extends Game {
     // various multipliers
     // winning pig and player pig are same 
     // when profitMult is called
-    override profitMultiplier(_gambler: Gambler): number {
+    profitMultiplier(_gambler: Gambler): number {
         if(this.playerPig == 0){return 1.9;}
         else if(this.playerPig == 1){return 3.8;}
         else if(this.playerPig == 2){return 7.6;}
         else{return 7.6;} // only other option is pig 3
     }
 }
+
+
+// REPEAT THE PROCESS OF INTERFACES AND CLASSES
+
 
 abstract class Gambler {
     private _name: string;
