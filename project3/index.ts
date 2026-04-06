@@ -9,6 +9,42 @@ interface simulation{
     profitMultiplier(_gambler: Gambler): number;
 }
 
+function playGames(g: Game, c: TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing){
+    console.log( "playing", g.name, "with book:" );
+        for( let [player, bet] of g.book ) {
+            console.log( "  ", player.name, ": $", bet );
+        }
+
+        const winners = c.simulateGame();
+
+        console.log( "game finished!" );
+
+        // For each winner, calculate how much money they won and give it to
+        // them. Deduct that much money from the casino.
+        for( let winner of winners ) {
+            const bet = g.book.get( winner )!;
+            const winnings = Math.round(bet * c.profitMultiplier( winner ) * 100) / 100;
+            winner.addMoney( winnings );
+            // this is a getter, not a setter. probs need a setter
+            g.casino.addProfit( -winnings );
+            console.log( 
+                " ", winner.name, "is a winner! they won: ", winnings );
+
+            // remove winners from the book so that only losers will remain.
+            // probably need a setter as well
+            g.book.delete( winner );
+        }
+
+        // For each loser, take their money and give it to the casino.
+        for( let [loser, bet] of g.book ) {
+            console.log( " ", loser.name, "has lost!" );
+            loser.addMoney( -bet ); // subtract money from losers;
+            casino.addProfit( bet ); // give it to the casino
+            // probs need as a setter
+            g.book.delete( loser );
+        }
+}
+
 // Create a class for the non-abstract portions
 // of the Game class. 
 // - name, playGame, etc.
@@ -18,6 +54,10 @@ class Game {
     private _casino: Casino;
 
     public get name(): string { return this._name }
+    public get book(): Map < Gambler , number> {return this._book}
+    public get casino(): Casino {return this._casino}
+
+    public set book(b: Map <Gambler, number>){this._book = b};
 
     constructor( name: string, casino: Casino ) {
         this._name = name;
@@ -27,38 +67,38 @@ class Game {
 
     protected profitMultiplier( _gambler: Gambler ): number { return 2; }
 
-    public playGame(): void {
-        console.log( "playing", this.name, "with book:" );
-        for( let [player, bet] of this._book ) {
-            console.log( "  ", player.name, ": $", bet );
-        }
+    // public playGame(): void {
+    //     console.log( "playing", this.name, "with book:" );
+    //     for( let [player, bet] of this._book ) {
+    //         console.log( "  ", player.name, ": $", bet );
+    //     }
 
-        const winners = this.simulateGame();
+    //     const winners = this.simulateGame();
 
-        console.log( "game finished!" );
+    //     console.log( "game finished!" );
 
-        // For each winner, calculate how much money they won and give it to
-        // them. Deduct that much money from the casino.
-        for( let winner of winners ) {
-            const bet = this._book.get( winner )!;
-            const winnings = Math.round(bet * this.profitMultiplier( winner ) * 100) / 100;
-            winner.addMoney( winnings );
-            this._casino.addProfit( -winnings );
-            console.log( 
-                " ", winner.name, "is a winner! they won: ", winnings );
+    //     // For each winner, calculate how much money they won and give it to
+    //     // them. Deduct that much money from the casino.
+    //     for( let winner of winners ) {
+    //         const bet = this._book.get( winner )!;
+    //         const winnings = Math.round(bet * this.profitMultiplier( winner ) * 100) / 100;
+    //         winner.addMoney( winnings );
+    //         this._casino.addProfit( -winnings );
+    //         console.log( 
+    //             " ", winner.name, "is a winner! they won: ", winnings );
 
-            // remove winners from the book so that only losers will remain.
-            this._book.delete( winner );
-        }
+    //         // remove winners from the book so that only losers will remain.
+    //         this._book.delete( winner );
+    //     }
 
-        // For each loser, take their money and give it to the casino.
-        for( let [loser, bet] of this._book ) {
-            console.log( " ", loser.name, "has lost!" );
-            loser.addMoney( -bet ); // subtract money from losers;
-            casino.addProfit( bet ); // give it to the casino
-            this._book.delete( loser );
-        }
-    }
+    //     // For each loser, take their money and give it to the casino.
+    //     for( let [loser, bet] of this._book ) {
+    //         console.log( " ", loser.name, "has lost!" );
+    //         loser.addMoney( -bet ); // subtract money from losers;
+    //         casino.addProfit( bet ); // give it to the casino
+    //         this._book.delete( loser );
+    //     }
+    // }
 
     public addPlayer( g: Gambler, bet: number ): void {
         this._book.set( g, bet );
@@ -69,17 +109,13 @@ class Game {
     }
 }
 
-
 // Individual games will take the class of non-abstract 
 // portions as a field
 
 // Repeat for Gamblers
 
-
-
 class TailsIWin implements simulation {
     private winners : Gambler[];
-
     private g: Game;
 
     // Construct game with name and casino for base class
@@ -214,8 +250,11 @@ class OffTrackGuineaPigRacing implements simulation {
 
 // REPEAT THE PROCESS OF INTERFACES AND CLASSES
 
+interface playstyle{
+    getBetSize(): number;
+}
 
-abstract class Gambler {
+class Gambler {
     private _name: string;
     private _money: number;
 
@@ -232,35 +271,17 @@ abstract class Gambler {
         this._target = targetFunds;
     }
 
-    // These are properties. 
-    // When we create a gambler: const gambler = new Gambler(...);
-    // we can write this: console.log( gambler.name )
-    // get name(): ... makes it so that when we access gambler.name, 
-    // the function { return this._name } gets called. This allows us
-    // to read the name inside the gambler. 
-    // Getters are public by default, so this is a way of reading a public 
-    // variable.
-    // However, get can only get a value. It's not able to set values. So
-    // name is a read-only property, which is what we want. 
     get name(): string { return this._name }
     get money(): number { return this._money }
     get target(): number { return this._target }
 
-    // setter for addMoney override in streakGambler
     set money(x: number){this._money = x};
 
-    /**
-     * Add or deduct a given amount of money to the gambler's bankroll. 
-     * @param amount The amount of money to add. Negative means to remove.
-     */
     addMoney( amount: number ): void {
         // rounding to avoid to try avoiding insane floats
         this._money += Math.round(amount * 100) / 100;
     }
 
-    /**
-     * @returns Whether the gambler has hit their target.
-     */
     public hitTarget(): boolean { 
         if(this._money >= this._target){
             return true;
@@ -269,14 +290,7 @@ abstract class Gambler {
         }
     }
 
-
-    /**
-     * @returns Whether the gambler has run out of money.
-     */
     public bankrupt(): boolean {
-        // Weird float math is occuring due to multipliers
-        // so we are checking if they have less than
-        // a penny. 
         if(this._money <= 0.01){
             return true;
         } else {
@@ -284,20 +298,10 @@ abstract class Gambler {
         }
     }
     
-    /**
-     * @returns Whether the gambler is finished (i.e., if they've run out
-     * of money or have reached their target.)
-     */
     public isFinished(): boolean { 
         if(this.hitTarget() || this.bankrupt()){return true;}
         else{return false;}
     }
-
-    /**
-     * @returns How much the gambler is going to bet next.
-     * Overriden in each subclass
-     */
-    public abstract getBetSize(): number;
 }
 
 /**
@@ -305,28 +309,26 @@ abstract class Gambler {
  * money. If they don't, they bet what they have. Their goal is to double 
  * their starting funds.
  */
-class StableGambler extends Gambler {
+class StableGambler implements playstyle {
     private _bet: number; 
+    private gambler : Gambler;
 
-    public constructor( 
-        name: string, 
-        startingFunds: number, 
-        stableBet: number
-    ) {
-        // (Gambler name, their starting funds, their target goal)
-        super( name, startingFunds, startingFunds * 2 );
-        this._bet = stableBet;
+    public constructor(
+        gambler : Gambler
+    ){
+        this.gambler = gambler;
+        this._bet = 15;
     }
 
-    override getBetSize(): number {
+    getBetSize(): number {
         // if bet size is less than gambler bank, standard bet
         // if bet size is larger than gambler bank, bet remaining money
         // stable bet is minimum bet, and if the minimum bet
         // is greater than the remaining funds, bet remaining funds.
-        if(this._bet <= this.money){
+        if(this._bet <= this.gambler.money){
             return this._bet;
         } else {
-            return this.money;
+            return this.gambler.money;
         }
     }
 }
@@ -336,34 +338,34 @@ class StableGambler extends Gambler {
  * less than yoloAmount, they bet the remainder of their money. Their goal is
  * to make 5 times their starting amount of money. 
  */
-class HighRiskGambler extends Gambler {
+class HighRiskGambler implements playstyle {
     /** if the gambler has <= this amount of money, they bet it all. */
     private _yoloAmount: number;
+    private gambler : Gambler;
 
     /**
      * @param yoloAmnt If the gambler has <= this amount of money, they
      * bet everything they have remaining.
      */
     public constructor(
-        name: string,
-        startingFunds: number, 
-        yoloAmnt: number 
+        gambler: Gambler,
+        yoloAmnt: number
     ) {
-        super(name, startingFunds, startingFunds * 5);
+        this.gambler = gambler;
         this._yoloAmount = yoloAmnt;
     }
 
-    override getBetSize(): number {
+    getBetSize(): number {
         // if this.money <= yolo , bet this.money
         // if this.money > yolo , bet half this.money
-        if(this.money <= this._yoloAmount){
-            return this.money;
+        if(this.gambler.money <= this._yoloAmount){
+            return this.gambler.money;
         } else{
             // betting half of remaining money on constant losses
             // will quickly lead to longer floats
             // use math.round to only bet in typical
             // dollar/coin amounts. 
-            return Math.round((this.money / 2) * 100) / 100;
+            return Math.round((this.gambler.money / 2) * 100) / 100;
         }
     }
 }
@@ -378,36 +380,35 @@ class HighRiskGambler extends Gambler {
  * 
  * How do we detect whether we won or lost? Override the addMoney method.
  */
-class StreakGambler extends Gambler {
+class StreakGambler implements playstyle {
  
     private _firstBet: number;
     private _minBet: number;
     private _winMult: number;
     private _loseMult: number;
+    private gambler : Gambler;
 
     public constructor(
-        name: string, 
-        startingFunds: number,
+        gambler : Gambler,
         firstBet: number,
         minBet: number,
         winMult: number,
         loseMult: number,
-        target: number
     ){
         // setting base info, target is 5x starting funds
         // streak vs high risk
-        super(name, startingFunds, target);
+        this.gambler = gambler;
         this._firstBet = firstBet;
         this._minBet = minBet;
         this._winMult = winMult;
         this._loseMult = loseMult;
     }
 
-    override getBetSize(): number {
+    getBetSize(): number {
         // if remaining money is less than 
         // preset minimum bet, bet remaining
-        if(this.money <= this._minBet){
-            return this.money;
+        if(this.gambler.money <= this._minBet){
+            return this.gambler.money;
         // if current bet (firstBet) is less than
         // the minimum bet, current bet is minBet
         // (caused by loss streak & loss mult)
@@ -423,10 +424,10 @@ class StreakGambler extends Gambler {
         }
     }
 
-    override addMoney(amount: number): void {
+    addMoney(amount: number): void {
         // still need to add/sub money
         // verify setter works properly
-        this.money += Math.round(amount * 100) / 100;
+        this.gambler.money += Math.round(amount * 100) / 100;
 
         // change multipliers
         // If lost money, reduce mult, else gain mult
@@ -441,10 +442,13 @@ class StreakGambler extends Gambler {
 
 class Casino {
     /** a list of games offered in the casino */
-    private _games: Game[];      
+    private _games: [TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing,
+        TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing,
+        TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing,
+    ];      
 
     /** a set of guests to the casino */
-    private _gamblers: Set<Gambler>;
+    private _gamblers: Set<StableGambler | HighRiskGambler | StreakGambler>;
 
     /** how much money the casino made today */
     private _profits: number; 
@@ -455,9 +459,9 @@ class Casino {
 
     public constructor( maxRounds: number ) {
         this._games = [
-            new TailsIWin("Tails I Win", this),
-            new GuessTheNumber("Guess the Number", this),
-            new OffTrackGuineaPigRacing("Off Track Guineapig Racing", this),
+            new TailsIWin(),
+            new GuessTheNumber(),
+            new OffTrackGuineaPigRacing(),
         ];
 
         this._profits = 0;
@@ -465,20 +469,20 @@ class Casino {
         this._gamblers = new Set([
             // Argument 2 is the amount they start with, 
             // Arg 3 is how much they bet
-            new StableGambler( "Alice", 100, 15 ),
+            new StableGambler(new Gambler("Alice", 100, 15)),
 
             // Argument 2 is the amount they start with
             // Arg 3 is how much they start betting
             // the target is to make 5 times their starting balance, but 
             // you don't see that here because it's calculated inside the 
             // constructor instead of being passed as an argument.
-            new HighRiskGambler( "Bob", 50, 10 ),
+            new HighRiskGambler(new Gambler("Bob", 50, 250), 10),
 
             // Arg 4 is the minimum amount they will bet 
             // Arg 5 is how much they multiply their bet by when they win
             // Arg 6 is how much they multiply their bet by when they lose
             // Arg 7 is their target. How much they want to make. 
-            new StreakGambler( "Camille", 200, 10, 10, 2, 0.5, 500 ),
+            new StreakGambler(new Gambler("Camille", 200, 500), 10, 10, 2, 0.5)
         ]);
 
         this._maxRounds = maxRounds;
@@ -516,7 +520,7 @@ class Casino {
             }
 
             const gameStartingProfit = this._profits;
-            game.playGame();
+            playGames(new Game(game.name, game.casino), game);
             console.log( 
                 "casino made", 
                 Math.round((casino._profits - gameStartingProfit) * 100) / 100, "on this game.")
