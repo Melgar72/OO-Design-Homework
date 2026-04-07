@@ -272,6 +272,7 @@ var OffTrackGuineaPigRacing = /** @class */ (function () {
     };
     return OffTrackGuineaPigRacing;
 }());
+// Gambler retains non-abstract methods
 var Gambler = /** @class */ (function () {
     function Gambler(name, startingFunds, targetFunds) {
         this._name = name;
@@ -394,11 +395,6 @@ var StableGambler = /** @class */ (function () {
     };
     return StableGambler;
 }());
-/**
- * The high risk gambler always bets half of their current money. If they have
- * less than yoloAmount, they bet the remainder of their money. Their goal is
- * to make 5 times their starting amount of money.
- */
 var HighRiskGambler = /** @class */ (function () {
     /**
      * @param yoloAmnt If the gambler has <= this amount of money, they
@@ -469,16 +465,6 @@ var HighRiskGambler = /** @class */ (function () {
     };
     return HighRiskGambler;
 }());
-/**
- * The streak better always increases their bet whenever they win by a
- * given multiple, and reduces their bet by a given multiple when they lose.
- * For example, if the win multiple is 2.0 and lose multiple is 0.5, the
- * streak better will double their money when they win and halve it when they
- * lose. You can also do the reverse, making them more conservative when
- * they win. They start at a given initial bet.
- *
- * How do we detect whether we won or lost? Override the addMoney method.
- */
 var StreakGambler = /** @class */ (function () {
     function StreakGambler(gambler, firstBet, minBet, winMult, loseMult) {
         // setting base info, target is 5x starting funds
@@ -605,42 +591,44 @@ var Casino = /** @class */ (function () {
     // TESTING
     Casino.prototype.playGames = function (c) {
         console.log("playing", c.name, "with book:");
-        console.log("testing playGames");
-        console.log(c.book);
-        for (var _i = 0, _a = c.book; _i < _a.length; _i++) {
-            var _b = _a[_i], player = _b[0], bet = _b[1];
-            console.log("  ", player.name, ": $", bet);
+        // console.log("testing playGames");
+        // console.log(c.book);
+        for (var _i = 0, _a = Array.from(this._gamblers); _i < _a.length; _i++) {
+            var iterator = _a[_i];
+            console.log(" ", iterator.name, ": $", iterator.getBetSize());
         }
+        // for( let [player, bet] of c.book ) {
+        //     console.log( "  ", player.name, ": $", bet );
+        // }
         var winners = c.simulateGame();
         console.log("game finished!");
         // For each winner, calculate how much money they won and give it to
         // them. Deduct that much money from the casino.
-        for (var _c = 0, winners_1 = winners; _c < winners_1.length; _c++) {
-            var winner = winners_1[_c];
+        for (var _b = 0, winners_1 = winners; _b < winners_1.length; _b++) {
+            var winner = winners_1[_b];
             var bet = c.book.get(winner);
             var winnings = Math.round(bet * c.profitMultiplier(winner) * 100) / 100;
             winner.addMoney(winnings);
-            // this is a getter, not a setter. probs need a setter
-            // per typescript docs, there's some "this" errors
-            // create new variable that conducts required actions
-            // in two steps
-            // c.casino.addProfit( -winnings );
-            // TESTING
-            // console.log("testing playGames");
-            // console.log(c.book);
             console.log(" ", winner.name, "is a winner! they won: ", winnings);
             // remove winners from the book so that only losers will remain.
             // probably need a setter as well
             c.book.delete(winner);
         }
         // For each loser, take their money and give it to the casino.
-        for (var _d = 0, _e = c.book; _d < _e.length; _d++) {
-            var _f = _e[_d], loser = _f[0], bet = _f[1];
-            console.log(" ", loser.name, "has lost!");
-            loser.addMoney(-bet); // subtract money from losers;
-            casino.addProfit(bet); // give it to the casino
+        // for( let [loser, bet] of c.book ) {
+        //     console.log( " ", loser.name, "has lost!" );
+        //     loser.addMoney( -bet ); // subtract money from losers;
+        //     casino.addProfit( bet ); // give it to the casino
+        //     // probs need as a setter
+        //     c.book.delete( loser );
+        // }
+        for (var _c = 0, _d = this._gamblers; _c < _d.length; _c++) {
+            var iterator = _d[_c];
+            console.log(" ", iterator.name, "has lost!");
+            iterator.addMoney(-iterator.getBetSize()); // subtract money from losers;
+            casino.addProfit(iterator.getBetSize()); // give it to the casino
             // probs need as a setter
-            c.book.delete(loser);
+            c.book.delete(iterator);
         }
     };
     /** For each game: have each gambler who is still present play.
@@ -663,9 +651,6 @@ var Casino = /** @class */ (function () {
                 // _mainGame.addPlayer( player, player.getBetSize() );
                 game.sendAddPlayer(player, player.getBetSize());
             }
-            // COME BACK HERE
-            // console.log("testing simulate");
-            // console.log(game.book);
             var gameStartingProfit = this._profits;
             this.playGames(game);
             console.log("casino made", Math.round((casino._profits - gameStartingProfit) * 100) / 100, "on this game.");
@@ -730,4 +715,4 @@ var MAX_N_ROUNDS = 5;
 // main:
 var casino = new Casino(MAX_N_ROUNDS);
 // casino.simulate();
-casino.simulateOneRound();
+casino.simulate();

@@ -2,7 +2,6 @@
 
 // Create an interface that has simulateGame()
 // All game classes will implement this
-
 interface simulation{
     // Run the game and return winning gamblers
     simulateGame(): (StableGambler | HighRiskGambler | StreakGambler)[];
@@ -249,11 +248,13 @@ class OffTrackGuineaPigRacing implements simulation {
 }
 
 
-// REPEAT THE PROCESS OF INTERFACES AND CLASSES
+// Remove abstract methods into interface
 
 interface playstyle{
     getBetSize(): number;
 }
+
+// Gambler retains non-abstract methods
 
 class Gambler {
     private _name: string;
@@ -366,11 +367,6 @@ class StableGambler implements playstyle {
     }
 }
 
-/**
- * The high risk gambler always bets half of their current money. If they have
- * less than yoloAmount, they bet the remainder of their money. Their goal is
- * to make 5 times their starting amount of money. 
- */
 class HighRiskGambler implements playstyle {
     /** if the gambler has <= this amount of money, they bet it all. */
     private _yoloAmount: number;
@@ -435,16 +431,6 @@ class HighRiskGambler implements playstyle {
     }
 }
 
-/**
- * The streak better always increases their bet whenever they win by a 
- * given multiple, and reduces their bet by a given multiple when they lose.
- * For example, if the win multiple is 2.0 and lose multiple is 0.5, the 
- * streak better will double their money when they win and halve it when they
- * lose. You can also do the reverse, making them more conservative when 
- * they win. They start at a given initial bet. 
- * 
- * How do we detect whether we won or lost? Override the addMoney method.
- */
 class StreakGambler implements playstyle {
  
     private _firstBet: number;
@@ -581,11 +567,16 @@ class Casino {
     // TESTING
     playGames(c: (TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing)){
         console.log( "playing", c.name, "with book:" );
-        console.log("testing playGames");
-        console.log(c.book);
-        for( let [player, bet] of c.book ) {
-            console.log( "  ", player.name, ": $", bet );
+        // console.log("testing playGames");
+        // console.log(c.book);
+
+        for(let iterator of Array.from(this._gamblers)){
+            console.log(" ", iterator.name, ": $", iterator.getBetSize());
         }
+
+        // for( let [player, bet] of c.book ) {
+        //     console.log( "  ", player.name, ": $", bet );
+        // }
 
         const winners = c.simulateGame();
 
@@ -597,16 +588,6 @@ class Casino {
             const bet = c.book.get( winner )!;
             const winnings = Math.round(bet * c.profitMultiplier( winner ) * 100) / 100;
             winner.addMoney( winnings );
-            // this is a getter, not a setter. probs need a setter
-            // per typescript docs, there's some "this" errors
-            // create new variable that conducts required actions
-            // in two steps
-            
-            
-            // c.casino.addProfit( -winnings );
-            // TESTING
-            // console.log("testing playGames");
-            // console.log(c.book);
 
             console.log( 
                 " ", winner.name, "is a winner! they won: ", winnings );
@@ -617,12 +598,20 @@ class Casino {
         }
 
         // For each loser, take their money and give it to the casino.
-        for( let [loser, bet] of c.book ) {
-            console.log( " ", loser.name, "has lost!" );
-            loser.addMoney( -bet ); // subtract money from losers;
-            casino.addProfit( bet ); // give it to the casino
+        // for( let [loser, bet] of c.book ) {
+        //     console.log( " ", loser.name, "has lost!" );
+        //     loser.addMoney( -bet ); // subtract money from losers;
+        //     casino.addProfit( bet ); // give it to the casino
+        //     // probs need as a setter
+        //     c.book.delete( loser );
+        // }
+
+        for( let iterator of this._gamblers ) {
+            console.log( " ", iterator.name, "has lost!" );
+            iterator.addMoney( -iterator.getBetSize() ); // subtract money from losers;
+            casino.addProfit( iterator.getBetSize() ); // give it to the casino
             // probs need as a setter
-            c.book.delete( loser );
+            c.book.delete( iterator );
         }
     }
 
@@ -657,10 +646,6 @@ class Casino {
                 // _mainGame.addPlayer( player, player.getBetSize() );
                 game.sendAddPlayer(player, player.getBetSize());
             }
-
-            // COME BACK HERE
-            // console.log("testing simulate");
-            // console.log(game.book);
 
             const gameStartingProfit = this._profits;
             
@@ -743,4 +728,4 @@ const MAX_N_ROUNDS = 5;
 const casino = new Casino( MAX_N_ROUNDS );
 
 // casino.simulate();
-casino.simulateOneRound();
+casino.simulate();
