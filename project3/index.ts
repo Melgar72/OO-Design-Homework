@@ -5,13 +5,15 @@
 
 interface simulation{
     // Run the game and return winning gamblers
-    simulateGame(): Gambler[];
-    profitMultiplier(_gambler: Gambler): number;
+    simulateGame(): (StableGambler | HighRiskGambler | StreakGambler)[];
+    profitMultiplier(_gambler: (StableGambler | HighRiskGambler | StreakGambler)): number;
 }
 
-function playGames(g: Game, c: TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing){
-    console.log( "playing", g.name, "with book:" );
-        for( let [player, bet] of g.book ) {
+/*
+function playGames(c: TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing){
+
+    console.log( "playing", c.name, "with book:" );
+        for( let [player, bet] of c.book ) {
             console.log( "  ", player.name, ": $", bet );
         }
 
@@ -22,42 +24,52 @@ function playGames(g: Game, c: TailsIWin | GuessTheNumber | OffTrackGuineaPigRac
         // For each winner, calculate how much money they won and give it to
         // them. Deduct that much money from the casino.
         for( let winner of winners ) {
-            const bet = g.book.get( winner )!;
+            const bet = c.book.get( winner )!;
             const winnings = Math.round(bet * c.profitMultiplier( winner ) * 100) / 100;
             winner.addMoney( winnings );
             // this is a getter, not a setter. probs need a setter
-            g.casino.addProfit( -winnings );
+            // per typescript docs, there's some "this" errors
+            // create new variable that conducts required actions
+            // in two steps
+            
+            
+            // c.casino.addProfit( -winnings );
+            // TESTING
+            // console.log("testing");
+            // console.log(c.book);
+
             console.log( 
                 " ", winner.name, "is a winner! they won: ", winnings );
 
             // remove winners from the book so that only losers will remain.
             // probably need a setter as well
-            g.book.delete( winner );
+            c.book.delete( winner );
         }
 
         // For each loser, take their money and give it to the casino.
-        for( let [loser, bet] of g.book ) {
+        for( let [loser, bet] of c.book ) {
             console.log( " ", loser.name, "has lost!" );
             loser.addMoney( -bet ); // subtract money from losers;
             casino.addProfit( bet ); // give it to the casino
             // probs need as a setter
-            g.book.delete( loser );
+            c.book.delete( loser );
         }
 }
+*/
 
 // Create a class for the non-abstract portions
 // of the Game class. 
 // - name, playGame, etc.
 class Game {
     private _name: string;
-    private _book: Map< Gambler, number >; 
+    private _book: Map< StableGambler | HighRiskGambler | StreakGambler, number >; 
     private _casino: Casino;
 
     public get name(): string { return this._name }
-    public get book(): Map < Gambler , number> {return this._book}
+    public get book(): Map < (StableGambler | HighRiskGambler | StreakGambler) , number> {return this._book}
     public get casino(): Casino {return this._casino}
 
-    public set book(b: Map <Gambler, number>){this._book = b};
+    public set book(b: Map <StableGambler | HighRiskGambler | StreakGambler, number>){this._book = b};
 
     constructor( name: string, casino: Casino ) {
         this._name = name;
@@ -65,46 +77,11 @@ class Game {
         this._casino = casino;
     }
 
-    protected profitMultiplier( _gambler: Gambler ): number { return 2; }
-
-    // public playGame(): void {
-    //     console.log( "playing", this.name, "with book:" );
-    //     for( let [player, bet] of this._book ) {
-    //         console.log( "  ", player.name, ": $", bet );
-    //     }
-
-    //     const winners = this.simulateGame();
-
-    //     console.log( "game finished!" );
-
-    //     // For each winner, calculate how much money they won and give it to
-    //     // them. Deduct that much money from the casino.
-    //     for( let winner of winners ) {
-    //         const bet = this._book.get( winner )!;
-    //         const winnings = Math.round(bet * this.profitMultiplier( winner ) * 100) / 100;
-    //         winner.addMoney( winnings );
-    //         this._casino.addProfit( -winnings );
-    //         console.log( 
-    //             " ", winner.name, "is a winner! they won: ", winnings );
-
-    //         // remove winners from the book so that only losers will remain.
-    //         this._book.delete( winner );
-    //     }
-
-    //     // For each loser, take their money and give it to the casino.
-    //     for( let [loser, bet] of this._book ) {
-    //         console.log( " ", loser.name, "has lost!" );
-    //         loser.addMoney( -bet ); // subtract money from losers;
-    //         casino.addProfit( bet ); // give it to the casino
-    //         this._book.delete( loser );
-    //     }
-    // }
-
-    public addPlayer( g: Gambler, bet: number ): void {
+    public addPlayer( g: StableGambler | HighRiskGambler | StreakGambler, bet: number ): void {
         this._book.set( g, bet );
     }
 
-    public getPlayers(): Gambler[] {
+    public getPlayers(): (StableGambler | HighRiskGambler | StreakGambler)[] {
         return Array.from(this._book.keys());
     }
 }
@@ -115,7 +92,7 @@ class Game {
 // Repeat for Gamblers
 
 class TailsIWin implements simulation {
-    private winners : Gambler[];
+    private winners : (StableGambler | HighRiskGambler | StreakGambler)[];
     private g: Game;
 
     // Construct game with name and casino for base class
@@ -125,8 +102,16 @@ class TailsIWin implements simulation {
         this.g = new Game("Tails I Win", casino);
     }
 
+    public get name(): string{return this.g.name}
+    public get book(): Map<(StableGambler | HighRiskGambler | StreakGambler), number>{return this.g.book}
+    public get casino(): Casino {return this.g.casino}
+
+    public sendAddPlayer(gambler: StableGambler | HighRiskGambler | StreakGambler, bet: number) : void{
+        this.g.addPlayer(gambler, bet);
+    }
+
     // Required method
-    simulateGame(): Gambler[] {
+    simulateGame(): (StableGambler | HighRiskGambler | StreakGambler)[] {
         this.winners = [];
         /*
          * flip coin
@@ -147,7 +132,7 @@ class TailsIWin implements simulation {
         return this.winners;
     }
 
-    profitMultiplier(_gambler: Gambler): number {
+    profitMultiplier(_gambler: StableGambler | HighRiskGambler | StreakGambler): number {
         return 1.9;
     }
 }
@@ -158,7 +143,7 @@ function randomInt( upper: number ) {
 }
 
 class GuessTheNumber implements simulation {
-    private winners : Gambler[];
+    private winners : (StableGambler | HighRiskGambler | StreakGambler)[];
     private playerNumGuess : number;
     private casinoNumGuess : number;
     private g: Game;
@@ -170,7 +155,15 @@ class GuessTheNumber implements simulation {
         this.g = new Game("Guess the Number", casino);
     }
 
-    simulateGame(): Gambler[] {
+    public get name(): string{return this.g.name}
+    public get book(): Map<(StableGambler | HighRiskGambler | StreakGambler), number>{return this.g.book}
+    public get casino(): Casino {return this.g.casino}
+
+    public sendAddPlayer(gambler: StableGambler | HighRiskGambler | StreakGambler, bet: number) : void{
+        this.g.addPlayer(gambler, bet);
+    }
+
+    simulateGame(): (StableGambler | HighRiskGambler | StreakGambler)[] {
         // re-instantiate winners.
         // wasn't updating properly between games without.
         this.winners = [];
@@ -189,13 +182,13 @@ class GuessTheNumber implements simulation {
     }
 
     // Multiplier in this game is 4.5
-    profitMultiplier(_gambler: Gambler): number {
+    profitMultiplier(_gambler: StableGambler | HighRiskGambler | StreakGambler): number {
         return 4.5;
     }
 }
 
 class OffTrackGuineaPigRacing implements simulation {
-    private winners : Gambler[];
+    private winners : (StableGambler | HighRiskGambler | StreakGambler)[];
     private playerPig : number;
     private winningPig: number;
     private holdRandom: number;
@@ -212,7 +205,15 @@ class OffTrackGuineaPigRacing implements simulation {
         this.g = new Game("Off Track Guineapig Racing", casino);
     }
 
-    simulateGame(): Gambler[] {
+    public get name(): string{return this.g.name}
+    public get book(): Map<(StableGambler | HighRiskGambler | StreakGambler), number>{return this.g.book}
+    public get casino(): Casino {return this.g.casino}
+
+    public sendAddPlayer(gambler: StableGambler | HighRiskGambler | StreakGambler, bet: number) : void{
+        this.g.addPlayer(gambler, bet);
+    }
+
+    simulateGame(): (StableGambler | HighRiskGambler | StreakGambler)[] {
         this.winners = [];  
         this.holdRandom = Math.random();
         // for loop for players
@@ -239,7 +240,7 @@ class OffTrackGuineaPigRacing implements simulation {
     // various multipliers
     // winning pig and player pig are same 
     // when profitMult is called
-    profitMultiplier(_gambler: Gambler): number {
+    profitMultiplier(_gambler: StableGambler | HighRiskGambler | StreakGambler): number {
         if(this.playerPig == 0){return 1.9;}
         else if(this.playerPig == 1){return 3.8;}
         else if(this.playerPig == 2){return 7.6;}
@@ -320,6 +321,38 @@ class StableGambler implements playstyle {
         this._bet = 15;
     }
 
+    get name(): string { return this.gambler.name }
+    get money(): number { return this.gambler.money }
+    get target(): number { return this.gambler.target }
+
+    set money(x: number){this.gambler.money = x};
+
+    addMoney( amount: number ): void {
+        // rounding to avoid to try avoiding insane floats
+        this.gambler.money += Math.round(amount * 100) / 100;
+    }
+
+    public hitTarget(): boolean { 
+        if(this.gambler.money >= this.gambler.target){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    public bankrupt(): boolean {
+        if(this.gambler.money <= 0.01){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public isFinished(): boolean { 
+        if(this.hitTarget() || this.bankrupt()){return true;}
+        else{return false;}
+    }
+
     getBetSize(): number {
         // if bet size is less than gambler bank, standard bet
         // if bet size is larger than gambler bank, bet remaining money
@@ -353,6 +386,38 @@ class HighRiskGambler implements playstyle {
     ) {
         this.gambler = gambler;
         this._yoloAmount = yoloAmnt;
+    }
+
+    get name(): string { return this.gambler.name }
+    get money(): number { return this.gambler.money }
+    get target(): number { return this.gambler.target }
+
+    set money(x: number){this.gambler.money = x};
+
+    addMoney( amount: number ): void {
+        // rounding to avoid to try avoiding insane floats
+        this.gambler.money += Math.round(amount * 100) / 100;
+    }
+
+    public hitTarget(): boolean { 
+        if(this.gambler.money >= this.gambler.target){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    public bankrupt(): boolean {
+        if(this.gambler.money <= 0.01){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public isFinished(): boolean { 
+        if(this.hitTarget() || this.bankrupt()){return true;}
+        else{return false;}
     }
 
     getBetSize(): number {
@@ -404,6 +469,33 @@ class StreakGambler implements playstyle {
         this._loseMult = loseMult;
     }
 
+    get name(): string { return this.gambler.name }
+    get money(): number { return this.gambler.money }
+    get target(): number { return this.gambler.target }
+
+    set money(x: number){this.gambler.money = x};
+
+    public hitTarget(): boolean { 
+        if(this.gambler.money >= this.gambler.target){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    public bankrupt(): boolean {
+        if(this.gambler.money <= 0.01){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public isFinished(): boolean { 
+        if(this.hitTarget() || this.bankrupt()){return true;}
+        else{return false;}
+    }
+
     getBetSize(): number {
         // if remaining money is less than 
         // preset minimum bet, bet remaining
@@ -442,10 +534,7 @@ class StreakGambler implements playstyle {
 
 class Casino {
     /** a list of games offered in the casino */
-    private _games: [TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing,
-        TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing,
-        TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing,
-    ];      
+    private _games: [TailsIWin , GuessTheNumber , OffTrackGuineaPigRacing];      
 
     /** a set of guests to the casino */
     private _gamblers: Set<StableGambler | HighRiskGambler | StreakGambler>;
@@ -489,6 +578,54 @@ class Casino {
         this._currentRound = 0;
     }
 
+    // TESTING
+    playGames(c: (TailsIWin | GuessTheNumber | OffTrackGuineaPigRacing)){
+        console.log( "playing", c.name, "with book:" );
+        console.log("testing playGames");
+        console.log(c.book);
+        for( let [player, bet] of c.book ) {
+            console.log( "  ", player.name, ": $", bet );
+        }
+
+        const winners = c.simulateGame();
+
+        console.log( "game finished!" );
+
+        // For each winner, calculate how much money they won and give it to
+        // them. Deduct that much money from the casino.
+        for( let winner of winners ) {
+            const bet = c.book.get( winner )!;
+            const winnings = Math.round(bet * c.profitMultiplier( winner ) * 100) / 100;
+            winner.addMoney( winnings );
+            // this is a getter, not a setter. probs need a setter
+            // per typescript docs, there's some "this" errors
+            // create new variable that conducts required actions
+            // in two steps
+            
+            
+            // c.casino.addProfit( -winnings );
+            // TESTING
+            // console.log("testing playGames");
+            // console.log(c.book);
+
+            console.log( 
+                " ", winner.name, "is a winner! they won: ", winnings );
+
+            // remove winners from the book so that only losers will remain.
+            // probably need a setter as well
+            c.book.delete( winner );
+        }
+
+        // For each loser, take their money and give it to the casino.
+        for( let [loser, bet] of c.book ) {
+            console.log( " ", loser.name, "has lost!" );
+            loser.addMoney( -bet ); // subtract money from losers;
+            casino.addProfit( bet ); // give it to the casino
+            // probs need as a setter
+            c.book.delete( loser );
+        }
+    }
+
     
 
     /**
@@ -496,7 +633,7 @@ class Casino {
      * @param amount The amount of profit to add. If negative, it counts as a
      * loss.
      */
-    public addProfit( amount: number ): void {
+    public addProfit = ( amount: number ): void => {
         this._profits += amount;
     }
 
@@ -513,14 +650,21 @@ class Casino {
         for( let game of this._games ) {
             this.determineWhoIsStillPlaying();
 
+            // let _mainGame = new Game(game.name, game.casino);
             // add each player who is still playing to the game.
             // have them use the bet size determined by their personality.
-            for( let player of this._gamblers ) {
-                game.addPlayer( player, player.getBetSize() );
+            for( let player of Array.from(this._gamblers) ) {
+                // _mainGame.addPlayer( player, player.getBetSize() );
+                game.sendAddPlayer(player, player.getBetSize());
             }
 
+            // COME BACK HERE
+            // console.log("testing simulate");
+            // console.log(game.book);
+
             const gameStartingProfit = this._profits;
-            playGames(new Game(game.name, game.casino), game);
+            
+            this.playGames(game);
             console.log( 
                 "casino made", 
                 Math.round((casino._profits - gameStartingProfit) * 100) / 100, "on this game.")
@@ -550,7 +694,7 @@ class Casino {
      * Update and list the people who are still playing.
      */
     private determineWhoIsStillPlaying() {
-        const gamblersWhoLeft: Gambler[] = [];
+        const gamblersWhoLeft: (StableGambler | HighRiskGambler | StreakGambler)[] = [];
         
         // update and list of who is still playing
         for( let gambler of this._gamblers.keys() ) {
@@ -584,6 +728,13 @@ class Casino {
             this._gamblers.delete( leaver );
         }
     }
+
+    public test(){
+        console.log("this prints")
+        for(let iterator of Array.from(this._gamblers)){
+            console.log(iterator);
+        }
+    }
 }
 
 const MAX_N_ROUNDS = 5;
@@ -591,4 +742,5 @@ const MAX_N_ROUNDS = 5;
 // main:
 const casino = new Casino( MAX_N_ROUNDS );
 
-casino.simulate();
+// casino.simulate();
+casino.simulateOneRound();
