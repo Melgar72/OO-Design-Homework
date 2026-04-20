@@ -22,39 +22,61 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const react_1 = __importStar(require("react"));
 const client_1 = require("react-dom/client");
-class MyListState {
-    constructor() {
-        this.nClicks = 0;
-    }
+const Table_1 = __importDefault(require("./Table"));
+const rootElem = document.getElementById('root');
+if (rootElem == null) {
+    alert('you forgot to put a root element in your HTML file.');
 }
-class MyList extends react_1.Component {
-    constructor(props) {
+const root = (0, client_1.createRoot)(rootElem);
+root.render(<react_1.StrictMode>
+        <Table_1.default />
+    </react_1.StrictMode>);
+{ /*
+interface MyListProps {
+    maxItems?: number;
+    children?: React.JSX.Element | React.JSX.Element[];
+}
+
+class MyListState {
+    nClicks : number = 0;
+}
+
+class MyList extends Component<MyListProps, MyListState> {
+    constructor(props: MyListProps) {
         super(props);
         this.state = new MyListState();
         this.addClick = this.addClick.bind(this);
     }
-    render() {
-        var _a;
-        const children = react_1.default.Children.toArray(this.props.children);
-        const result = [];
-        const nChildren = (_a = this.props.maxItems) !== null && _a !== void 0 ? _a : children.length;
-        for (let child = 0; child < Math.min(nChildren, children.length); child++) {
-            result.push(children[child]);
+
+    override render(): ReactNode {
+        const children = React.Children.toArray(this.props.children);
+        const result = []
+        const nChildren = this.props.maxItems ?? children.length;
+    
+        for( let child = 0; child < Math.min(nChildren, children.length); child++ ) {
+            result.push( children[child] );
         }
-        result.push(<li>You have clicked {this.state.nClicks} times.</li>);
-        return <ul onClick={this.addClick}>{result}</ul>;
+
+        result.push( <li>You have clicked {this.state.nClicks} times.</li> );
+
+        return <ul onClick={this.addClick}>{result}</ul>
     }
-    addClick() {
+
+    addClick(): void {
         let newState = new MyListState();
         newState.nClicks = this.state.nClicks + 1;
-        this.setState(newState);
+        this.setState( newState );
     }
 }
-class App extends react_1.Component {
-    render() {
+
+class App extends Component {
+    override render(): ReactNode {
         return <div>
             <p>welcome to my web app.</p>
             <MyList maxItems={2}>
@@ -62,14 +84,22 @@ class App extends react_1.Component {
                 <li>two</li>
                 <li>three</li>
             </MyList>
-        </div>;
+        </div>
     }
 }
+
 const rootElem = document.getElementById('root');
-if (rootElem == null) {
+
+if( rootElem == null ) {
     alert('you forgot to put a root element in your HTML file.');
 }
-const root = (0, client_1.createRoot)(rootElem);
-root.render(<react_1.StrictMode>
-        <App />
-    </react_1.StrictMode>);
+
+const root = createRoot( rootElem as HTMLElement );
+
+root.render(
+    <StrictMode>
+        <App/>
+    </StrictMode>
+);
+*/
+}

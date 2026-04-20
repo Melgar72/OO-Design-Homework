@@ -1,6 +1,21 @@
 import React, { StrictMode, Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
+import Table from "./Table";
+
+const rootElem = document.getElementById('root');
+
+if( rootElem == null ) {
+    alert('you forgot to put a root element in your HTML file.');
+}
+const root = createRoot(rootElem as HTMLElement);
+root.render(
+    <StrictMode>
+        <Table />
+    </StrictMode>
+);
+
+{/*
 interface MyListProps {
     maxItems?: number;
     children?: React.JSX.Element | React.JSX.Element[];
@@ -64,3 +79,4 @@ root.render(
         <App/>
     </StrictMode>
 );
+*/}
