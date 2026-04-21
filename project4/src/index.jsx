@@ -25,34 +25,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const react_1 = __importStar(require("react"));
 const client_1 = require("react-dom/client");
-class MyListState {
-    constructor() {
-        this.nClicks = 0;
-    }
-}
-class MyList extends react_1.Component {
-    constructor(props) {
-        super(props);
-        this.state = new MyListState();
-        this.addClick = this.addClick.bind(this);
-    }
-    render() {
-        var _a;
-        const children = react_1.default.Children.toArray(this.props.children);
-        const result = [];
-        const nChildren = (_a = this.props.maxItems) !== null && _a !== void 0 ? _a : children.length;
-        for (let child = 0; child < Math.min(nChildren, children.length); child++) {
-            result.push(children[child]);
-        }
-        result.push(<li>You have clicked {this.state.nClicks} times.</li>);
-        return <ul onClick={this.addClick}>{result}</ul>;
-    }
-    addClick() {
-        let newState = new MyListState();
-        newState.nClicks = this.state.nClicks + 1;
-        this.setState(newState);
-    }
-}
 class TableState {
     constructor() {
         this.nClicks = 0;
@@ -130,12 +102,6 @@ class RouletteTable extends react_1.Component {
                 <button className="square">34</button>
             </div>
             </MyTable>
-
-            <MyList maxItems={3}>
-                <li>one</li>
-                <li>two</li>
-                <li>three</li>
-            </MyList>
         </div>);
     }
 }
