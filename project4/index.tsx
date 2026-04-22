@@ -42,26 +42,57 @@ class MyTable extends Component<TableProps, TableState> {
 
 {/* https://www.typescriptlang.org/docs/handbook/jsx.html#value-based-elements */}
 
-const Square2 = (value : {value: string}) => {
+const Square2 = (value : {value: number}) => {
     const [selected, setSelected] = useState(Boolean);
+    const [style, setStyle] = useState("square");
+
+    const standardStyle = () => {
+        if(value.value % 2 > 0){setStyle("redSquare");}   
+        else {setStyle("blackSquare");}
+    }
+
+    const changeStyle = () => {
+        if(style == "selected"){standardStyle();}
+        else{setStyle("selected")};
+    }
 
     function handleClick(){
         // toggle boolean : selected
         // set color blue (?)
         // add/remove from list of values to be submitted
-        if(selected == true){setSelected(false);}
-        else if(selected == false){setSelected(true);}
+        
+        // changeStyle();
 
-        console.log('clicked', value, selected);
-
+        if(selected == true){
+            setSelected(false);
+        }
+        else if(selected == false){
+            setSelected(true);
+        }
+        
+        changeStyle();
+        console.log('clicked', value, selected, style);
     }
+
+    if(style == "square"){
+        standardStyle();
+        return (
+        <button 
+            className={style}
+            onClick={handleClick}
+            >
+                {value.value}
+        </button>
+        );
+    }
+    
     return (
     <button 
-        className="square"
+        className={style}
         onClick={handleClick}
         >
             {value.value}
-        </button>
+    </button>
     );
 }
 
@@ -106,46 +137,46 @@ class Board extends Component{
             <p>Welcome to the Roulette table!</p>
 
             <div className="board-row">
-                <Square2 value="3"/>
-                <Square2 value="6"/>
-                <Square2 value="9"/>
-                <Square2 value="12"/>
-                <Square2 value="15"/>
-                <Square2 value="18"/>
-                <Square2 value="21"/>
-                <Square2 value="24"/>
-                <Square2 value="27"/>
-                <Square2 value="30"/>
-                <Square2 value="33"/>
-                <Square2 value="36"/>
+                <Square2 value={3}/>
+                <Square2 value={6}/>
+                <Square2 value={9}/>
+                <Square2 value={12}/>
+                <Square2 value={15}/>
+                <Square2 value={18}/>
+                <Square2 value={21}/>
+                <Square2 value={24}/>
+                <Square2 value={27}/>
+                <Square2 value={30}/>
+                <Square2 value={33}/>
+                <Square2 value={36}/>
             </div>
             <div className="board-row">
-                <Square2 value="2"/>
-                <Square2 value="5"/>
-                <Square2 value="8"/>
-                <Square2 value="11"/>
-                <Square2 value="14"/>
-                <Square2 value="17"/>
-                <Square2 value="20"/>
-                <Square2 value="23"/>
-                <Square2 value="26"/>
-                <Square2 value="29"/>
-                <Square2 value="32"/>
-                <Square2 value="35"/>
+                <Square2 value={2}/>
+                <Square2 value={5}/>
+                <Square2 value={8}/>
+                <Square2 value={11}/>
+                <Square2 value={14}/>
+                <Square2 value={17}/>
+                <Square2 value={20}/>
+                <Square2 value={23}/>
+                <Square2 value={26}/>
+                <Square2 value={29}/>
+                <Square2 value={32}/>
+                <Square2 value={35}/>
             </div>
             <div className="board-row">
-                <Square2 value="1"/>
-                <Square2 value="4"/>
-                <Square2 value="7"/>
-                <Square2 value="10"/>
-                <Square2 value="13"/>
-                <Square2 value="16"/>
-                <Square2 value="19"/>
-                <Square2 value="22"/>
-                <Square2 value="25"/>
-                <Square2 value="28"/>
-                <Square2 value="31"/>
-                <Square2 value="34"/>
+                <Square2 value={1}/>
+                <Square2 value={4}/>
+                <Square2 value={7}/>
+                <Square2 value={10}/>
+                <Square2 value={13}/>
+                <Square2 value={16}/>
+                <Square2 value={19}/>
+                <Square2 value={22}/>
+                <Square2 value={25}/>
+                <Square2 value={28}/>
+                <Square2 value={31}/>
+                <Square2 value={34}/>
             </div>
         </div>
         );
