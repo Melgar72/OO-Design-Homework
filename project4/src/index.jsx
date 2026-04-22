@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const react_1 = __importStar(require("react"));
 const client_1 = require("react-dom/client");
+const react_2 = require("react");
 class TableState {
     constructor() {
         this.nClicks = 0;
@@ -53,14 +54,41 @@ class MyTable extends react_1.Component {
         this.setState(newState);
     }
 }
-function Square({ value }) {
+const Square2 = (value) => {
+    const [selected, setSelected] = (0, react_2.useState)(Boolean);
     function handleClick() {
         // toggle boolean : selected
         // set color blue (?)
         // add/remove from list of values to be submitted
-        return <button className="square" style={{ color: "blue" }}>{value}</button>;
+        if (selected == true) {
+            setSelected(false);
+        }
+        else if (selected == false) {
+            setSelected(true);
+        }
+        console.log('clicked', value, selected);
     }
-    return <button className="square">{value}</button>;
+    return (<button className="square" onClick={handleClick}>
+            {value.value}
+        </button>);
+};
+function Square({ value }) {
+    const [selected, setSelected] = (0, react_2.useState)(Boolean);
+    function handleClick() {
+        // toggle boolean : selected
+        // set color blue (?)
+        // add/remove from list of values to be submitted
+        if (selected == true) {
+            setSelected(false);
+        }
+        else if (selected == false) {
+            setSelected(true);
+        }
+        console.log('clicked', value, selected);
+    }
+    return (<button className="square" onClick={handleClick}>
+            {value}
+        </button>);
 }
 class SquareState {
     constructor() {
@@ -74,7 +102,7 @@ class Board extends react_1.Component {
             <p>Welcome to the Roulette table!</p>
 
             <div className="board-row">
-                <Square value="3"/>
+                <Square2 value="3"/>
                 <Square value="6"/>
                 <Square value="9"/>
                 <Square value="12"/>
