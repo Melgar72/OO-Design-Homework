@@ -53,12 +53,77 @@ class MyTable extends react_1.Component {
         this.setState(newState);
     }
 }
+function Square({ value }) {
+    function handleClick() {
+        // toggle boolean : selected
+        // set color blue (?)
+        // add/remove from list of values to be submitted
+        return <button className="square" style={{ color: "blue" }}>{value}</button>;
+    }
+    return <button className="square">{value}</button>;
+}
+class SquareState {
+    constructor() {
+        this.selected = false;
+    }
+}
+class Board extends react_1.Component {
+    render() {
+        return (<div>
+
+            <p>Welcome to the Roulette table!</p>
+
+            <div className="board-row">
+                <Square value="3"/>
+                <Square value="6"/>
+                <Square value="9"/>
+                <Square value="12"/>
+                <Square value="15"/>
+                <Square value="18"/>
+                <Square value="21"/>
+                <Square value="24"/>
+                <Square value="27"/>
+                <Square value="30"/>
+                <Square value="33"/>
+                <Square value="36"/>
+            </div>
+            <div className="board-row">
+                <Square value="2"/>
+                <Square value="5"/>
+                <Square value="8"/>
+                <Square value="11"/>
+                <Square value="14"/>
+                <Square value="17"/>
+                <Square value="20"/>
+                <Square value="23"/>
+                <Square value="26"/>
+                <Square value="29"/>
+                <Square value="32"/>
+                <Square value="35"/>
+            </div>
+            <div className="board-row">
+                <Square value="1"/>
+                <Square value="4"/>
+                <Square value="7"/>
+                <Square value="10"/>
+                <Square value="13"/>
+                <Square value="16"/>
+                <Square value="19"/>
+                <Square value="22"/>
+                <Square value="25"/>
+                <Square value="28"/>
+                <Square value="31"/>
+                <Square value="34"/>
+            </div>
+        </div>);
+    }
+}
 class RouletteTable extends react_1.Component {
     render() {
         return (<div>
             <p>Welcome to the Roulette table!</p>
 
-            <MyTable maxItems={36}>
+            <MyTable maxItems={3}>
             <div className="board-row">
                 <button className="square">3</button>
                 <button className="square">6</button>
@@ -111,5 +176,5 @@ if (rootElem == null) {
 }
 const root = (0, client_1.createRoot)(rootElem);
 root.render(<react_1.StrictMode>
-        <RouletteTable />
+        <Board />
     </react_1.StrictMode>);
